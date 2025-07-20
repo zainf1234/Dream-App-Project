@@ -14,21 +14,21 @@ export default function Home() {
   );
 }
 
-// -------------------- TO DO LIST --------------------
+// ---------------- TO DO LIST ----------------
 function ToDoList() {
   const [tasks, setTasks] = useState([
-    { text: 'Finish homework', due: '2025-07-25', done: false },
+    { text: 'Finish homework', done: false, due: '2025-07-22' },
   ]);
   const [newTask, setNewTask] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [error, setError] = useState('');
 
   const addTask = () => {
-    if (!newTask.trim() || !dueDate) {
-      setError('Task name and due date are required.');
+    if (newTask.trim() === '') {
+      setError('Task name is required.');
       return;
     }
-    setTasks([...tasks, { text: newTask, due: dueDate, done: false }]);
+    setTasks([...tasks, { text: newTask, done: false, due: dueDate }]);
     setNewTask('');
     setDueDate('');
     setError('');
@@ -49,22 +49,25 @@ function ToDoList() {
       <h2 className="text-2xl font-semibold mb-3">To Do List</h2>
       <ul className="space-y-2">
         {tasks.map((task, idx) => (
-          <li key={idx} className="flex flex-col mb-2">
-            <div className="flex justify-between items-center">
-              <label className="flex items-center gap-2">
+          <li key={idx} className="flex items-start justify-between">
+            <label className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
                   checked={task.done}
                   onChange={() => toggleDone(idx)}
                 />
                 <span className={task.done ? 'line-through' : ''}>{task.text}</span>
-              </label>
-              <button onClick={() => removeTask(idx)} className="text-red-600">✕</button>
-            </div>
-            <p className="text-sm text-gray-600 ml-6">📅 Due: {task.due}</p>
+              </div>
+              {task.due && (
+                <span className="text-sm text-gray-600">Due: {task.due}</span>
+              )}
+            </label>
+            <button onClick={() => removeTask(idx)} className="text-red-600">✕</button>
           </li>
         ))}
       </ul>
+      {error && <p className="text-red-600 mt-2">{error}</p>}
       <div className="mt-4 space-y-2">
         <input
           type="text"
@@ -79,7 +82,6 @@ function ToDoList() {
           onChange={(e) => setDueDate(e.target.value)}
           className="w-full px-3 py-2 border rounded-md"
         />
-        {error && <p className="text-red-600 text-sm">{error}</p>}
         <button
           onClick={addTask}
           className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
@@ -91,17 +93,17 @@ function ToDoList() {
   );
 }
 
-// -------------------- REMINDERS --------------------
+// ---------------- REMINDERS ----------------
 function Reminders() {
   const [reminders, setReminders] = useState([
-    { text: 'Dentist', time: '2025-07-21T10:00' },
+    { text: 'Dentist appointment', time: '2025-07-21T10:00' },
   ]);
   const [text, setText] = useState('');
   const [time, setTime] = useState('');
   const [error, setError] = useState('');
 
   const addReminder = () => {
-    if (!text.trim() || !time) {
+    if (text.trim() === '' || !time) {
       setError('Reminder and time are required.');
       return;
     }
@@ -129,6 +131,7 @@ function Reminders() {
           </li>
         ))}
       </ul>
+      {error && <p className="text-red-600 mt-2">{error}</p>}
       <div className="mt-4 space-y-2">
         <input
           type="text"
@@ -143,7 +146,6 @@ function Reminders() {
           onChange={(e) => setTime(e.target.value)}
           className="w-full px-3 py-2 border rounded-md"
         />
-        {error && <p className="text-red-600 text-sm">{error}</p>}
         <button
           onClick={addReminder}
           className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
@@ -155,23 +157,23 @@ function Reminders() {
   );
 }
 
-// -------------------- GOAL TRACKER --------------------
+// ---------------- GOAL TRACKER ----------------
 function GoalTracker() {
   const [goals, setGoals] = useState([
-    { name: 'Read 3 books', progress: 30, due: '2025-08-01' },
+    { name: 'Run 5km', progress: 60, due: '2025-08-01' },
   ]);
   const [newGoal, setNewGoal] = useState('');
-  const [goalDate, setGoalDate] = useState('');
+  const [dueDate, setDueDate] = useState('');
   const [error, setError] = useState('');
 
   const addGoal = () => {
-    if (!newGoal.trim() || !goalDate) {
-      setError('Goal and target date are required.');
+    if (newGoal.trim() === '') {
+      setError('Goal name is required.');
       return;
     }
-    setGoals([...goals, { name: newGoal, progress: 0, due: goalDate }]);
+    setGoals([...goals, { name: newGoal, progress: 0, due: dueDate }]);
     setNewGoal('');
-    setGoalDate('');
+    setDueDate('');
     setError('');
   };
 
@@ -195,7 +197,9 @@ function GoalTracker() {
               <span>{goal.name}</span>
               <button onClick={() => removeGoal(idx)} className="text-red-600">✕</button>
             </div>
-            <p className="text-sm text-gray-600 mb-1">📅 Target: {goal.due}</p>
+            {goal.due && (
+              <p className="text-sm text-gray-600 mb-1">Due: {goal.due}</p>
+            )}
             <div className="w-full bg-gray-200 h-3 rounded-full overflow-hidden mb-1">
               <div
                 className="h-full bg-green-500 transition-all"
@@ -213,6 +217,7 @@ function GoalTracker() {
           </li>
         ))}
       </ul>
+      {error && <p className="text-red-600 mt-2">{error}</p>}
       <div className="mt-4 space-y-2">
         <input
           type="text"
@@ -223,11 +228,10 @@ function GoalTracker() {
         />
         <input
           type="date"
-          value={goalDate}
-          onChange={(e) => setGoalDate(e.target.value)}
+          value={dueDate}
+          onChange={(e) => setDueDate(e.target.value)}
           className="w-full px-3 py-2 border rounded-md"
         />
-        {error && <p className="text-red-600 text-sm">{error}</p>}
         <button
           onClick={addGoal}
           className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
