@@ -3,14 +3,21 @@ import { useState } from 'react';
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gray-900 text-white p-6 space-y-10">
-      <h1 className="text-4xl font-bold text-center mb-4">My Productivity Tools</h1>
+    <main
+      className="min-h-screen bg-gray-900 text-white space-y-10 max-w-[calc(100vw-2rem)] mx-auto"
+      style={{ padding: 'clamp(1rem, 2vw, 3rem)' }}
+    >
+      <h1
+        className="font-bold text-center mb-4"
+        style={{ fontSize: 'clamp(1.5rem, 4vw, 3rem)' }}
+      >
+        My Productivity Tools
+      </h1>
       <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-7xl mx-auto">
         <ToDoList />
         <Reminders />
         <GoalTracker />
       </div>
-
     </main>
   );
 }
@@ -46,12 +53,17 @@ function ToDoList() {
   };
 
   return (
-    <div className="bg-white text-black p-5 rounded-xl shadow-md">
-      <h2 className="text-2xl font-semibold mb-3">To Do List</h2>
+    <div
+      className="bg-white text-black p-5 rounded-xl shadow-md"
+      style={{ padding: 'clamp(1rem, 1.5vw, 2rem)' }}
+    >
+      <h2 className="text-2xl font-semibold mb-3" style={{ fontSize: 'clamp(1.25rem, 2vw, 1.75rem)' }}>
+        To Do List
+      </h2>
       <ul className="space-y-2">
         {tasks.map((task, idx) => (
           <li key={idx} className="flex items-start justify-between">
-            <label className="flex flex-col gap-1">
+            <label className="flex flex-col gap-1" style={{ fontSize: 'clamp(0.9rem, 1vw, 1.1rem)' }}>
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
@@ -64,7 +76,7 @@ function ToDoList() {
                 <span className="text-sm text-gray-600">Due: {task.due}</span>
               )}
             </label>
-            <button onClick={() => removeTask(idx)} className="text-red-600">✕</button>
+            <button onClick={() => removeTask(idx)} className="text-red-600 text-xl">✕</button>
           </li>
         ))}
       </ul>
@@ -76,16 +88,19 @@ function ToDoList() {
           onChange={(e) => setNewTask(e.target.value)}
           className="w-full px-3 py-2 border rounded-md"
           placeholder="New task"
+          style={{ fontSize: 'clamp(1rem, 1vw, 1.2rem)', padding: 'clamp(0.5rem, 1vw, 0.75rem)' }}
         />
         <input
           type="date"
           value={dueDate}
           onChange={(e) => setDueDate(e.target.value)}
           className="w-full px-3 py-2 border rounded-md"
+          style={{ fontSize: 'clamp(1rem, 1vw, 1.2rem)', padding: 'clamp(0.5rem, 1vw, 0.75rem)' }}
         />
         <button
           onClick={addTask}
           className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
+          style={{ fontSize: 'clamp(1rem, 1vw, 1.2rem)' }}
         >
           Add Task
         </button>
@@ -119,16 +134,21 @@ function Reminders() {
   };
 
   return (
-    <div className="bg-white text-black p-5 rounded-xl shadow-md">
-      <h2 className="text-2xl font-semibold mb-3">Reminders</h2>
-      <ul className="space-y-2">
+    <div
+      className="bg-white text-black p-5 rounded-xl shadow-md"
+      style={{ padding: 'clamp(1rem, 1.5vw, 2rem)' }}
+    >
+      <h2 className="text-2xl font-semibold mb-3" style={{ fontSize: 'clamp(1.25rem, 2vw, 1.75rem)' }}>
+        Reminders
+      </h2>
+      <ul className="space-y-2" style={{ fontSize: 'clamp(0.9rem, 1vw, 1.1rem)' }}>
         {reminders.map((r, idx) => (
           <li key={idx} className="flex justify-between items-center">
             <div>
               <p>{r.text}</p>
               <p className="text-sm text-gray-600">🕒 {new Date(r.time).toLocaleString()}</p>
             </div>
-            <button onClick={() => removeReminder(idx)} className="text-red-600">✕</button>
+            <button onClick={() => removeReminder(idx)} className="text-red-600 text-xl">✕</button>
           </li>
         ))}
       </ul>
@@ -140,16 +160,19 @@ function Reminders() {
           onChange={(e) => setText(e.target.value)}
           placeholder="Reminder"
           className="w-full px-3 py-2 border rounded-md"
+          style={{ fontSize: 'clamp(1rem, 1vw, 1.2rem)', padding: 'clamp(0.5rem, 1vw, 0.75rem)' }}
         />
         <input
           type="datetime-local"
           value={time}
           onChange={(e) => setTime(e.target.value)}
           className="w-full px-3 py-2 border rounded-md"
+          style={{ fontSize: 'clamp(1rem, 1vw, 1.2rem)', padding: 'clamp(0.5rem, 1vw, 0.75rem)' }}
         />
         <button
           onClick={addReminder}
           className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
+          style={{ fontSize: 'clamp(1rem, 1vw, 1.2rem)' }}
         >
           Add Reminder
         </button>
@@ -189,14 +212,19 @@ function GoalTracker() {
   };
 
   return (
-    <div className="bg-white text-black p-5 rounded-xl shadow-md">
-      <h2 className="text-2xl font-semibold mb-3">Goal Tracker</h2>
-      <ul className="space-y-4">
+    <div
+      className="bg-white text-black p-5 rounded-xl shadow-md"
+      style={{ padding: 'clamp(1rem, 1.5vw, 2rem)' }}
+    >
+      <h2 className="text-2xl font-semibold mb-3" style={{ fontSize: 'clamp(1.25rem, 2vw, 1.75rem)' }}>
+        Goal Tracker
+      </h2>
+      <ul className="space-y-4" style={{ fontSize: 'clamp(0.9rem, 1vw, 1.1rem)' }}>
         {goals.map((goal, idx) => (
           <li key={idx}>
             <div className="flex justify-between items-center mb-1">
               <span>{goal.name}</span>
-              <button onClick={() => removeGoal(idx)} className="text-red-600">✕</button>
+              <button onClick={() => removeGoal(idx)} className="text-red-600 text-xl">✕</button>
             </div>
             {goal.due && (
               <p className="text-sm text-gray-600 mb-1">Due: {goal.due}</p>
@@ -226,16 +254,19 @@ function GoalTracker() {
           onChange={(e) => setNewGoal(e.target.value)}
           className="w-full px-3 py-2 border rounded-md"
           placeholder="New goal"
+          style={{ fontSize: 'clamp(1rem, 1vw, 1.2rem)', padding: 'clamp(0.5rem, 1vw, 0.75rem)' }}
         />
         <input
           type="date"
           value={dueDate}
           onChange={(e) => setDueDate(e.target.value)}
           className="w-full px-3 py-2 border rounded-md"
+          style={{ fontSize: 'clamp(1rem, 1vw, 1.2rem)', padding: 'clamp(0.5rem, 1vw, 0.75rem)' }}
         />
         <button
           onClick={addGoal}
           className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
+          style={{ fontSize: 'clamp(1rem, 1vw, 1.2rem)' }}
         >
           Add Goal
         </button>
