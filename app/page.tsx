@@ -14,25 +14,7 @@ export default function Home() {
 
   return (
     <>
-      {/* Test red bar to confirm rendering */}
-      <div
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          backgroundColor: 'red',
-          color: 'white',
-          zIndex: 9999,
-          padding: '0.5rem',
-          textAlign: 'center',
-          fontWeight: 'bold',
-        }}
-      >
-        TEST NAV BAR AREA
-      </div>
-
-      {/* Simplified Nav Bar */}
+      {/* Simplified Nav Bar without red test bar and breadcrumb */}
       <nav
         style={{
           position: 'sticky',
@@ -42,35 +24,29 @@ export default function Home() {
           padding: '1rem',
           zIndex: 1000,
           display: 'flex',
-          justifyContent: 'space-between',
+          justifyContent: 'flex-start',
           alignItems: 'center',
-          marginTop: '2.5rem', // to avoid overlap with test bar
+          gap: '1rem',
           fontSize: 'clamp(1rem, 1.5vw, 1.25rem)',
         }}
       >
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          {(['todo', 'reminders', 'goals'] as Page[]).map((p) => (
-            <button
-              key={p}
-              onClick={() => setPage(p)}
-              style={{
-                padding: '0.25rem 0.75rem',
-                borderRadius: '0.375rem',
-                backgroundColor: page === p ? '#2563eb' : 'transparent',
-                color: 'white',
-                border: 'none',
-                cursor: 'pointer',
-              }}
-              aria-current={page === p ? 'page' : undefined}
-            >
-              {breadcrumbLabels[p]}
-            </button>
-          ))}
-        </div>
-
-        <div aria-label="Breadcrumb" style={{ userSelect: 'none' }}>
-          Home &gt; {breadcrumbLabels[page]}
-        </div>
+        {(['todo', 'reminders', 'goals'] as Page[]).map((p) => (
+          <button
+            key={p}
+            onClick={() => setPage(p)}
+            style={{
+              padding: '0.25rem 0.75rem',
+              borderRadius: '0.375rem',
+              backgroundColor: page === p ? '#2563eb' : 'transparent',
+              color: 'white',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+            aria-current={page === p ? 'page' : undefined}
+          >
+            {breadcrumbLabels[p]}
+          </button>
+        ))}
       </nav>
 
       {/* Main Content */}
@@ -105,7 +81,7 @@ export default function Home() {
   );
 }
 
-// --------- ToDoList (unchanged except inline styles) ---------
+// --------- ToDoList ---------
 function ToDoList() {
   const [tasks, setTasks] = useState([
     { text: 'Finish homework', done: false, due: '2025-07-22' },
@@ -224,8 +200,8 @@ function ToDoList() {
             border: 'none',
             cursor: 'pointer',
           }}
-          onMouseOver={e => (e.currentTarget.style.backgroundColor = '#1e40af')}
-          onMouseOut={e => (e.currentTarget.style.backgroundColor = '#2563eb')}
+          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1e40af')}
+          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
         >
           Add Task
         </button>
@@ -234,7 +210,7 @@ function ToDoList() {
   );
 }
 
-// --------- Reminders (same inline style approach) ---------
+// --------- Reminders ---------
 function Reminders() {
   const [reminders, setReminders] = useState([
     { text: 'Dentist appointment', time: '2025-07-21T10:00' },
@@ -336,8 +312,8 @@ function Reminders() {
             border: 'none',
             cursor: 'pointer',
           }}
-          onMouseOver={e => (e.currentTarget.style.backgroundColor = '#1e40af')}
-          onMouseOut={e => (e.currentTarget.style.backgroundColor = '#2563eb')}
+          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1e40af')}
+          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
         >
           Add Reminder
         </button>
@@ -346,7 +322,7 @@ function Reminders() {
   );
 }
 
-// --------- Goal Tracker (inline styles) ---------
+// --------- Goal Tracker ---------
 function GoalTracker() {
   const [goals, setGoals] = useState([
     { name: 'Run 5km', progress: 60, due: '2025-08-01' },
@@ -482,8 +458,8 @@ function GoalTracker() {
             border: 'none',
             cursor: 'pointer',
           }}
-          onMouseOver={e => (e.currentTarget.style.backgroundColor = '#1e40af')}
-          onMouseOut={e => (e.currentTarget.style.backgroundColor = '#2563eb')}
+          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1e40af')}
+          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
         >
           Add Goal
         </button>
