@@ -1,24 +1,65 @@
 'use client';
 import { useState } from 'react';
 
+type Page = 'todo' | 'reminders' | 'goals';
+
 export default function Home() {
+  const [page, setPage] = useState<Page>('todo');
+
+  const breadcrumbLabels: Record<Page, string> = {
+    todo: 'To Do List',
+    reminders: 'Reminders',
+    goals: 'Goal Tracker',
+  };
+
   return (
-    <main
-      className="min-h-screen bg-gray-900 text-white space-y-10 max-w-[calc(100vw-2rem)] mx-auto"
-      style={{ padding: 'clamp(1rem, 2vw, 3rem)' }}
-    >
-      <h1
-        className="font-bold text-center mb-4"
-        style={{ fontSize: 'clamp(1.5rem, 4vw, 3rem)' }}
+    <>
+      {/* Sticky Navigation */}
+      <nav
+        className="sticky top-0 z-50 bg-gray-800 text-white flex justify-between items-center px-6 py-3 shadow-md"
+        style={{ fontSize: 'clamp(1rem, 1.5vw, 1.25rem)' }}
       >
-        My Productivity Tools
-      </h1>
-      <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-7xl mx-auto">
-        <ToDoList />
-        <Reminders />
-        <GoalTracker />
-      </div>
-    </main>
+        {/* Navigation Buttons */}
+        <div className="flex gap-6">
+          {(['todo', 'reminders', 'goals'] as Page[]).map((p) => (
+            <button
+              key={p}
+              onClick={() => setPage(p)}
+              className={`px-3 py-1 rounded-md transition ${
+                page === p
+                  ? 'bg-blue-600 hover:bg-blue-700'
+                  : 'hover:bg-gray-700'
+              }`}
+              aria-current={page === p ? 'page' : undefined}
+            >
+              {breadcrumbLabels[p]}
+            </button>
+          ))}
+        </div>
+
+        {/* Breadcrumb */}
+        <div aria-label="Breadcrumb" className="text-gray-300 select-none">
+          Home &gt; {breadcrumbLabels[page]}
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <main
+        className="min-h-screen bg-gray-900 text-white space-y-10 max-w-[calc(100vw-2rem)] mx-auto"
+        style={{ padding: 'clamp(1rem, 2vw, 3rem)' }}
+      >
+        <h1
+          className="font-bold text-center mb-4"
+          style={{ fontSize: 'clamp(1.5rem, 4vw, 3rem)' }}
+        >
+          My Productivity Tools
+        </h1>
+
+        {page === 'todo' && <ToDoList />}
+        {page === 'reminders' && <Reminders />}
+        {page === 'goals' && <GoalTracker />}
+      </main>
+    </>
   );
 }
 
@@ -62,8 +103,8 @@ function ToDoList() {
       </h2>
       <ul className="space-y-2">
         {tasks.map((task, idx) => (
-          <li key={idx} className="flex items-start justify-between">
-            <label className="flex flex-col gap-1" style={{ fontSize: 'clamp(0.9rem, 1vw, 1.1rem)' }}>
+          <li key={idx} className="flex items-start justify-between" style={{ fontSize: 'clamp(0.9rem, 1vw, 1.1rem)' }}>
+            <label className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
