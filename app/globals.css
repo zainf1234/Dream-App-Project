@@ -3,16 +3,6 @@
 @tailwind components;
 @tailwind utilities;
 
-html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-}
-
-input, button {
-  outline: none;
-}
-
-button:hover {
-  cursor: pointer;
+body {
+  @apply bg-gray-900 text-white font-sans;
 }
