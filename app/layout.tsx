@@ -4,13 +4,15 @@ import { ReactNode } from 'react';
 
 export const metadata = {
   title: 'Productivity Dashboard',
-  description: 'To Do, Reminders, and Goal Tracking in one place.',
+  description: 'Track your tasks, reminders, and goals.',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="bg-gray-900 text-white font-sans">
+        {children}
+      </body>
     </html>
   );
 }
