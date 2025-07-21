@@ -5,11 +5,12 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-900 text-white p-6 space-y-10">
       <h1 className="text-4xl font-bold text-center mb-4">My Productivity Tools</h1>
-      <div className="grid md:grid-cols-3 gap-8">
+      <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-7xl mx-auto">
         <ToDoList />
         <Reminders />
         <GoalTracker />
       </div>
+
     </main>
   );
 }
