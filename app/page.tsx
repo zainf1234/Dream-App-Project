@@ -1,243 +1,155 @@
+// page.tsx
 'use client';
+
 import { useState } from 'react';
 
 export default function Home() {
-  return (
-    <main className="min-h-screen bg-gray-900 text-white p-6 space-y-10">
-      <h1 className="text-4xl font-bold text-center mb-4">My Productivity Tools</h1>
-      <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-7xl mx-auto">
-        <ToDoList />
-        <Reminders />
-        <GoalTracker />
-      </div>
-
-    </main>
-  );
-}
-
-// ---------------- TO DO LIST ----------------
-function ToDoList() {
-  const [tasks, setTasks] = useState([
-    { text: 'Finish homework', done: false, due: '2025-07-22' },
-  ]);
-  const [newTask, setNewTask] = useState('');
-  const [dueDate, setDueDate] = useState('');
+  // To Do state
+  const [toDos, setToDos] = useState<{ task: string; due: string; done: boolean }[]>([]);
+  const [newToDo, setNewToDo] = useState('');
+  const [toDoDue, setToDoDue] = useState('');
+  
+  // Reminder state
+  const [reminders, setReminders] = useState<{ event: string; time: string }[]>([]);
+  const [newReminder, setNewReminder] = useState('');
+  const [reminderTime, setReminderTime] = useState('');
+  
+  // Goal state
+  const [goals, setGoals] = useState<{ goal: string; due: string; progress: number }[]>([]);
+  const [newGoal, setNewGoal] = useState('');
+  const [goalDue, setGoalDue] = useState('');
+  
   const [error, setError] = useState('');
 
-  const addTask = () => {
-    if (newTask.trim() === '') {
-      setError('Task name is required.');
+  // Submission handler
+  const handleSubmit = () => {
+    if (!newToDo || !toDoDue || !newReminder || !reminderTime || !newGoal || !goalDue) {
+      setError('Please fill out all fields before submitting.');
       return;
     }
-    setTasks([...tasks, { text: newTask, done: false, due: dueDate }]);
-    setNewTask('');
-    setDueDate('');
     setError('');
-  };
 
-  const toggleDone = (index: number) => {
-    const updated = [...tasks];
-    updated[index].done = !updated[index].done;
-    setTasks(updated);
-  };
+    setToDos([...toDos, { task: newToDo, due: toDoDue, done: false }]);
+    setReminders([...reminders, { event: newReminder, time: reminderTime }]);
+    setGoals([...goals, { goal: newGoal, due: goalDue, progress: 0 }]);
 
-  const removeTask = (index: number) => {
-    setTasks(tasks.filter((_, i) => i !== index));
+    setNewToDo('');
+    setToDoDue('');
+    setNewReminder('');
+    setReminderTime('');
+    setNewGoal('');
+    setGoalDue('');
   };
 
   return (
-    <div className="bg-white text-black p-5 rounded-xl shadow-md">
-      <h2 className="text-2xl font-semibold mb-3">To Do List</h2>
-      <ul className="space-y-2">
-        {tasks.map((task, idx) => (
-          <li key={idx} className="flex items-start justify-between">
-            <label className="flex flex-col gap-1">
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={task.done}
-                  onChange={() => toggleDone(idx)}
-                />
-                <span className={task.done ? 'line-through' : ''}>{task.text}</span>
-              </div>
-              {task.due && (
-                <span className="text-sm text-gray-600">Due: {task.due}</span>
-              )}
-            </label>
-            <button onClick={() => removeTask(idx)} className="text-red-600">✕</button>
-          </li>
-        ))}
-      </ul>
-      {error && <p className="text-red-600 mt-2">{error}</p>}
-      <div className="mt-4 space-y-2">
+    <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-7xl mx-auto">
+      {/* To Do List */}
+      <div className="bg-gray-800 p-4 rounded shadow">
+        <h2 className="text-lg font-semibold mb-2">To Do List</h2>
         <input
           type="text"
-          value={newTask}
-          onChange={(e) => setNewTask(e.target.value)}
-          className="w-full px-3 py-2 border rounded-md"
-          placeholder="New task"
+          placeholder="New Task"
+          className="w-full mb-2 p-2 bg-gray-700 rounded"
+          value={newToDo}
+          onChange={(e) => setNewToDo(e.target.value)}
         />
         <input
           type="date"
-          value={dueDate}
-          onChange={(e) => setDueDate(e.target.value)}
-          className="w-full px-3 py-2 border rounded-md"
+          className="w-full mb-2 p-2 bg-gray-700 rounded"
+          value={toDoDue}
+          onChange={(e) => setToDoDue(e.target.value)}
         />
-        <button
-          onClick={addTask}
-          className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
-        >
-          Add Task
-        </button>
+        <ul className="space-y-2">
+          {toDos.map((todo, index) => (
+            <li key={index} className="flex justify-between items-center">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={todo.done}
+                  onChange={() => {
+                    const updated = [...toDos];
+                    updated[index].done = !updated[index].done;
+                    setToDos(updated);
+                  }}
+                />
+                <span className={todo.done ? 'line-through text-gray-400' : ''}>
+                  {todo.task} (Due: {todo.due})
+                </span>
+              </label>
+              <button onClick={() => setToDos(toDos.filter((_, i) => i !== index))}>❌</button>
+            </li>
+          ))}
+        </ul>
       </div>
-    </div>
-  );
-}
 
-// ---------------- REMINDERS ----------------
-function Reminders() {
-  const [reminders, setReminders] = useState([
-    { text: 'Dentist appointment', time: '2025-07-21T10:00' },
-  ]);
-  const [text, setText] = useState('');
-  const [time, setTime] = useState('');
-  const [error, setError] = useState('');
-
-  const addReminder = () => {
-    if (text.trim() === '' || !time) {
-      setError('Reminder and time are required.');
-      return;
-    }
-    setReminders([...reminders, { text, time }]);
-    setText('');
-    setTime('');
-    setError('');
-  };
-
-  const removeReminder = (index: number) => {
-    setReminders(reminders.filter((_, i) => i !== index));
-  };
-
-  return (
-    <div className="bg-white text-black p-5 rounded-xl shadow-md">
-      <h2 className="text-2xl font-semibold mb-3">Reminders</h2>
-      <ul className="space-y-2">
-        {reminders.map((r, idx) => (
-          <li key={idx} className="flex justify-between items-center">
-            <div>
-              <p>{r.text}</p>
-              <p className="text-sm text-gray-600">🕒 {new Date(r.time).toLocaleString()}</p>
-            </div>
-            <button onClick={() => removeReminder(idx)} className="text-red-600">✕</button>
-          </li>
-        ))}
-      </ul>
-      {error && <p className="text-red-600 mt-2">{error}</p>}
-      <div className="mt-4 space-y-2">
+      {/* Reminders */}
+      <div className="bg-gray-800 p-4 rounded shadow">
+        <h2 className="text-lg font-semibold mb-2">Reminders</h2>
         <input
           type="text"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Reminder"
-          className="w-full px-3 py-2 border rounded-md"
+          placeholder="New Reminder"
+          className="w-full mb-2 p-2 bg-gray-700 rounded"
+          value={newReminder}
+          onChange={(e) => setNewReminder(e.target.value)}
         />
         <input
           type="datetime-local"
-          value={time}
-          onChange={(e) => setTime(e.target.value)}
-          className="w-full px-3 py-2 border rounded-md"
+          className="w-full mb-2 p-2 bg-gray-700 rounded"
+          value={reminderTime}
+          onChange={(e) => setReminderTime(e.target.value)}
         />
-        <button
-          onClick={addReminder}
-          className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
-        >
-          Add Reminder
-        </button>
+        <ul className="space-y-2">
+          {reminders.map((reminder, index) => (
+            <li key={index} className="flex justify-between items-center">
+              <span>{reminder.event} @ {reminder.time}</span>
+              <button onClick={() => setReminders(reminders.filter((_, i) => i !== index))}>❌</button>
+            </li>
+          ))}
+        </ul>
       </div>
-    </div>
-  );
-}
 
-// ---------------- GOAL TRACKER ----------------
-function GoalTracker() {
-  const [goals, setGoals] = useState([
-    { name: 'Run 5km', progress: 60, due: '2025-08-01' },
-  ]);
-  const [newGoal, setNewGoal] = useState('');
-  const [dueDate, setDueDate] = useState('');
-  const [error, setError] = useState('');
-
-  const addGoal = () => {
-    if (newGoal.trim() === '') {
-      setError('Goal name is required.');
-      return;
-    }
-    setGoals([...goals, { name: newGoal, progress: 0, due: dueDate }]);
-    setNewGoal('');
-    setDueDate('');
-    setError('');
-  };
-
-  const removeGoal = (index: number) => {
-    setGoals(goals.filter((_, i) => i !== index));
-  };
-
-  const updateProgress = (index: number, newProgress: number) => {
-    const updated = [...goals];
-    updated[index].progress = newProgress;
-    setGoals(updated);
-  };
-
-  return (
-    <div className="bg-white text-black p-5 rounded-xl shadow-md">
-      <h2 className="text-2xl font-semibold mb-3">Goal Tracker</h2>
-      <ul className="space-y-4">
-        {goals.map((goal, idx) => (
-          <li key={idx}>
-            <div className="flex justify-between items-center mb-1">
-              <span>{goal.name}</span>
-              <button onClick={() => removeGoal(idx)} className="text-red-600">✕</button>
-            </div>
-            {goal.due && (
-              <p className="text-sm text-gray-600 mb-1">Due: {goal.due}</p>
-            )}
-            <div className="w-full bg-gray-200 h-3 rounded-full overflow-hidden mb-1">
-              <div
-                className="h-full bg-green-500 transition-all"
-                style={{ width: `${goal.progress}%` }}
-              />
-            </div>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={goal.progress}
-              onChange={(e) => updateProgress(idx, parseInt(e.target.value))}
-              className="w-full"
-            />
-          </li>
-        ))}
-      </ul>
-      {error && <p className="text-red-600 mt-2">{error}</p>}
-      <div className="mt-4 space-y-2">
+      {/* Goal Tracker */}
+      <div className="bg-gray-800 p-4 rounded shadow">
+        <h2 className="text-lg font-semibold mb-2">Goals</h2>
         <input
           type="text"
+          placeholder="New Goal"
+          className="w-full mb-2 p-2 bg-gray-700 rounded"
           value={newGoal}
           onChange={(e) => setNewGoal(e.target.value)}
-          className="w-full px-3 py-2 border rounded-md"
-          placeholder="New goal"
         />
         <input
           type="date"
-          value={dueDate}
-          onChange={(e) => setDueDate(e.target.value)}
-          className="w-full px-3 py-2 border rounded-md"
+          className="w-full mb-2 p-2 bg-gray-700 rounded"
+          value={goalDue}
+          onChange={(e) => setGoalDue(e.target.value)}
         />
+        <ul className="space-y-2">
+          {goals.map((goal, index) => (
+            <li key={index}>
+              <div className="flex justify-between items-center mb-1">
+                <span>{goal.goal} (Due: {goal.due})</span>
+                <button onClick={() => setGoals(goals.filter((_, i) => i !== index))}>❌</button>
+              </div>
+              <div className="w-full bg-gray-600 h-2 rounded">
+                <div
+                  className="bg-green-500 h-2 rounded"
+                  style={{ width: `${goal.progress}%` }}
+                />
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Error Message and Submit Button */}
+      <div className="col-span-full mt-4">
+        {error && <p className="text-red-400 mb-2">{error}</p>}
         <button
-          onClick={addGoal}
-          className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
+          onClick={handleSubmit}
+          className="bg-blue-500 hover:bg-blue-600 transition-colors px-4 py-2 rounded"
         >
-          Add Goal
+          Submit All
         </button>
       </div>
     </div>
