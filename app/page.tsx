@@ -14,22 +14,53 @@ export default function Home() {
 
   return (
     <>
-      {/* Sticky Navigation */}
-      <nav
-        className="sticky top-0 z-50 bg-gray-800 text-white flex justify-between items-center px-6 py-3 shadow-md"
-        style={{ fontSize: 'clamp(1rem, 1.5vw, 1.25rem)' }}
+      {/* Test red bar to confirm rendering */}
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          backgroundColor: 'red',
+          color: 'white',
+          zIndex: 9999,
+          padding: '0.5rem',
+          textAlign: 'center',
+          fontWeight: 'bold',
+        }}
       >
-        {/* Navigation Buttons */}
-        <div className="flex gap-6">
+        TEST NAV BAR AREA
+      </div>
+
+      {/* Simplified Nav Bar */}
+      <nav
+        style={{
+          position: 'sticky',
+          top: 0,
+          backgroundColor: 'blue',
+          color: 'white',
+          padding: '1rem',
+          zIndex: 1000,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginTop: '2.5rem', // to avoid overlap with test bar
+          fontSize: 'clamp(1rem, 1.5vw, 1.25rem)',
+        }}
+      >
+        <div style={{ display: 'flex', gap: '1rem' }}>
           {(['todo', 'reminders', 'goals'] as Page[]).map((p) => (
             <button
               key={p}
               onClick={() => setPage(p)}
-              className={`px-3 py-1 rounded-md transition ${
-                page === p
-                  ? 'bg-blue-600 hover:bg-blue-700'
-                  : 'hover:bg-gray-700'
-              }`}
+              style={{
+                padding: '0.25rem 0.75rem',
+                borderRadius: '0.375rem',
+                backgroundColor: page === p ? '#2563eb' : 'transparent',
+                color: 'white',
+                border: 'none',
+                cursor: 'pointer',
+              }}
               aria-current={page === p ? 'page' : undefined}
             >
               {breadcrumbLabels[p]}
@@ -37,20 +68,31 @@ export default function Home() {
           ))}
         </div>
 
-        {/* Breadcrumb */}
-        <div aria-label="Breadcrumb" className="text-gray-300 select-none">
+        <div aria-label="Breadcrumb" style={{ userSelect: 'none' }}>
           Home &gt; {breadcrumbLabels[page]}
         </div>
       </nav>
 
       {/* Main Content */}
       <main
-        className="min-h-screen bg-gray-900 text-white space-y-10 max-w-[calc(100vw-2rem)] mx-auto"
-        style={{ padding: 'clamp(1rem, 2vw, 3rem)' }}
+        style={{
+          minHeight: '100vh',
+          backgroundColor: '#111827',
+          color: 'white',
+          padding: 'clamp(1rem, 2vw, 3rem)',
+          maxWidth: 'calc(100vw - 2rem)',
+          margin: 'auto',
+          marginTop: '2rem',
+          fontFamily: 'sans-serif',
+        }}
       >
         <h1
-          className="font-bold text-center mb-4"
-          style={{ fontSize: 'clamp(1.5rem, 4vw, 3rem)' }}
+          style={{
+            fontWeight: 'bold',
+            textAlign: 'center',
+            marginBottom: '1rem',
+            fontSize: 'clamp(1.5rem, 4vw, 3rem)',
+          }}
         >
           My Productivity Tools
         </h1>
@@ -63,7 +105,7 @@ export default function Home() {
   );
 }
 
-// ---------------- TO DO LIST ----------------
+// --------- ToDoList (unchanged except inline styles) ---------
 function ToDoList() {
   const [tasks, setTasks] = useState([
     { text: 'Finish homework', done: false, due: '2025-07-22' },
@@ -95,53 +137,95 @@ function ToDoList() {
 
   return (
     <div
-      className="bg-white text-black p-5 rounded-xl shadow-md"
-      style={{ padding: 'clamp(1rem, 1.5vw, 2rem)' }}
+      style={{
+        backgroundColor: 'white',
+        color: 'black',
+        padding: 'clamp(1rem, 1.5vw, 2rem)',
+        borderRadius: '1rem',
+        boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+      }}
     >
-      <h2 className="text-2xl font-semibold mb-3" style={{ fontSize: 'clamp(1.25rem, 2vw, 1.75rem)' }}>
+      <h2 style={{ fontSize: 'clamp(1.25rem, 2vw, 1.75rem)', marginBottom: '1rem' }}>
         To Do List
       </h2>
-      <ul className="space-y-2">
+      <ul style={{ marginBottom: '1rem', fontSize: 'clamp(0.9rem, 1vw, 1.1rem)' }}>
         {tasks.map((task, idx) => (
-          <li key={idx} className="flex items-start justify-between" style={{ fontSize: 'clamp(0.9rem, 1vw, 1.1rem)' }}>
-            <label className="flex flex-col gap-1">
-              <div className="flex items-center gap-2">
+          <li
+            key={idx}
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              marginBottom: '0.5rem',
+            }}
+          >
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <input
                   type="checkbox"
                   checked={task.done}
                   onChange={() => toggleDone(idx)}
                 />
-                <span className={task.done ? 'line-through' : ''}>{task.text}</span>
+                <span style={{ textDecoration: task.done ? 'line-through' : 'none' }}>
+                  {task.text}
+                </span>
               </div>
               {task.due && (
-                <span className="text-sm text-gray-600">Due: {task.due}</span>
+                <span style={{ fontSize: '0.85rem', color: '#4b5563' }}>
+                  Due: {task.due}
+                </span>
               )}
             </label>
-            <button onClick={() => removeTask(idx)} className="text-red-600 text-xl">✕</button>
+            <button
+              onClick={() => removeTask(idx)}
+              style={{ color: '#dc2626', fontSize: '1.25rem', border: 'none', background: 'none', cursor: 'pointer' }}
+              aria-label={`Remove task ${task.text}`}
+            >
+              ✕
+            </button>
           </li>
         ))}
       </ul>
-      {error && <p className="text-red-600 mt-2">{error}</p>}
-      <div className="mt-4 space-y-2">
+
+      {error && <p style={{ color: '#dc2626', marginBottom: '1rem' }}>{error}</p>}
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         <input
           type="text"
           value={newTask}
           onChange={(e) => setNewTask(e.target.value)}
-          className="w-full px-3 py-2 border rounded-md"
           placeholder="New task"
-          style={{ fontSize: 'clamp(1rem, 1vw, 1.2rem)', padding: 'clamp(0.5rem, 1vw, 0.75rem)' }}
+          style={{
+            padding: 'clamp(0.5rem, 1vw, 0.75rem)',
+            fontSize: 'clamp(1rem, 1vw, 1.2rem)',
+            borderRadius: '0.375rem',
+            border: '1px solid #d1d5db',
+          }}
         />
         <input
           type="date"
           value={dueDate}
           onChange={(e) => setDueDate(e.target.value)}
-          className="w-full px-3 py-2 border rounded-md"
-          style={{ fontSize: 'clamp(1rem, 1vw, 1.2rem)', padding: 'clamp(0.5rem, 1vw, 0.75rem)' }}
+          style={{
+            padding: 'clamp(0.5rem, 1vw, 0.75rem)',
+            fontSize: 'clamp(1rem, 1vw, 1.2rem)',
+            borderRadius: '0.375rem',
+            border: '1px solid #d1d5db',
+          }}
         />
         <button
           onClick={addTask}
-          className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
-          style={{ fontSize: 'clamp(1rem, 1vw, 1.2rem)' }}
+          style={{
+            backgroundColor: '#2563eb',
+            color: 'white',
+            padding: '0.5rem',
+            borderRadius: '0.375rem',
+            fontSize: 'clamp(1rem, 1vw, 1.2rem)',
+            border: 'none',
+            cursor: 'pointer',
+          }}
+          onMouseOver={e => (e.currentTarget.style.backgroundColor = '#1e40af')}
+          onMouseOut={e => (e.currentTarget.style.backgroundColor = '#2563eb')}
         >
           Add Task
         </button>
@@ -150,7 +234,7 @@ function ToDoList() {
   );
 }
 
-// ---------------- REMINDERS ----------------
+// --------- Reminders (same inline style approach) ---------
 function Reminders() {
   const [reminders, setReminders] = useState([
     { text: 'Dentist appointment', time: '2025-07-21T10:00' },
@@ -176,44 +260,84 @@ function Reminders() {
 
   return (
     <div
-      className="bg-white text-black p-5 rounded-xl shadow-md"
-      style={{ padding: 'clamp(1rem, 1.5vw, 2rem)' }}
+      style={{
+        backgroundColor: 'white',
+        color: 'black',
+        padding: 'clamp(1rem, 1.5vw, 2rem)',
+        borderRadius: '1rem',
+        boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+      }}
     >
-      <h2 className="text-2xl font-semibold mb-3" style={{ fontSize: 'clamp(1.25rem, 2vw, 1.75rem)' }}>
+      <h2 style={{ fontSize: 'clamp(1.25rem, 2vw, 1.75rem)', marginBottom: '1rem' }}>
         Reminders
       </h2>
-      <ul className="space-y-2" style={{ fontSize: 'clamp(0.9rem, 1vw, 1.1rem)' }}>
+      <ul style={{ fontSize: 'clamp(0.9rem, 1vw, 1.1rem)', marginBottom: '1rem' }}>
         {reminders.map((r, idx) => (
-          <li key={idx} className="flex justify-between items-center">
+          <li
+            key={idx}
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '0.5rem',
+            }}
+          >
             <div>
               <p>{r.text}</p>
-              <p className="text-sm text-gray-600">🕒 {new Date(r.time).toLocaleString()}</p>
+              <p style={{ fontSize: '0.85rem', color: '#4b5563' }}>
+                🕒 {new Date(r.time).toLocaleString()}
+              </p>
             </div>
-            <button onClick={() => removeReminder(idx)} className="text-red-600 text-xl">✕</button>
+            <button
+              onClick={() => removeReminder(idx)}
+              style={{ color: '#dc2626', fontSize: '1.25rem', border: 'none', background: 'none', cursor: 'pointer' }}
+              aria-label={`Remove reminder ${r.text}`}
+            >
+              ✕
+            </button>
           </li>
         ))}
       </ul>
-      {error && <p className="text-red-600 mt-2">{error}</p>}
-      <div className="mt-4 space-y-2">
+
+      {error && <p style={{ color: '#dc2626', marginBottom: '1rem' }}>{error}</p>}
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         <input
           type="text"
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Reminder"
-          className="w-full px-3 py-2 border rounded-md"
-          style={{ fontSize: 'clamp(1rem, 1vw, 1.2rem)', padding: 'clamp(0.5rem, 1vw, 0.75rem)' }}
+          style={{
+            padding: 'clamp(0.5rem, 1vw, 0.75rem)',
+            fontSize: 'clamp(1rem, 1vw, 1.2rem)',
+            borderRadius: '0.375rem',
+            border: '1px solid #d1d5db',
+          }}
         />
         <input
           type="datetime-local"
           value={time}
           onChange={(e) => setTime(e.target.value)}
-          className="w-full px-3 py-2 border rounded-md"
-          style={{ fontSize: 'clamp(1rem, 1vw, 1.2rem)', padding: 'clamp(0.5rem, 1vw, 0.75rem)' }}
+          style={{
+            padding: 'clamp(0.5rem, 1vw, 0.75rem)',
+            fontSize: 'clamp(1rem, 1vw, 1.2rem)',
+            borderRadius: '0.375rem',
+            border: '1px solid #d1d5db',
+          }}
         />
         <button
           onClick={addReminder}
-          className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
-          style={{ fontSize: 'clamp(1rem, 1vw, 1.2rem)' }}
+          style={{
+            backgroundColor: '#2563eb',
+            color: 'white',
+            padding: '0.5rem',
+            borderRadius: '0.375rem',
+            fontSize: 'clamp(1rem, 1vw, 1.2rem)',
+            border: 'none',
+            cursor: 'pointer',
+          }}
+          onMouseOver={e => (e.currentTarget.style.backgroundColor = '#1e40af')}
+          onMouseOut={e => (e.currentTarget.style.backgroundColor = '#2563eb')}
         >
           Add Reminder
         </button>
@@ -222,7 +346,7 @@ function Reminders() {
   );
 }
 
-// ---------------- GOAL TRACKER ----------------
+// --------- Goal Tracker (inline styles) ---------
 function GoalTracker() {
   const [goals, setGoals] = useState([
     { name: 'Run 5km', progress: 60, due: '2025-08-01' },
@@ -254,26 +378,59 @@ function GoalTracker() {
 
   return (
     <div
-      className="bg-white text-black p-5 rounded-xl shadow-md"
-      style={{ padding: 'clamp(1rem, 1.5vw, 2rem)' }}
+      style={{
+        backgroundColor: 'white',
+        color: 'black',
+        padding: 'clamp(1rem, 1.5vw, 2rem)',
+        borderRadius: '1rem',
+        boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+      }}
     >
-      <h2 className="text-2xl font-semibold mb-3" style={{ fontSize: 'clamp(1.25rem, 2vw, 1.75rem)' }}>
+      <h2 style={{ fontSize: 'clamp(1.25rem, 2vw, 1.75rem)', marginBottom: '1rem' }}>
         Goal Tracker
       </h2>
-      <ul className="space-y-4" style={{ fontSize: 'clamp(0.9rem, 1vw, 1.1rem)' }}>
+      <ul style={{ fontSize: 'clamp(0.9rem, 1vw, 1.1rem)', marginBottom: '1rem' }}>
         {goals.map((goal, idx) => (
-          <li key={idx}>
-            <div className="flex justify-between items-center mb-1">
+          <li key={idx} style={{ marginBottom: '1.5rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '0.5rem',
+              }}
+            >
               <span>{goal.name}</span>
-              <button onClick={() => removeGoal(idx)} className="text-red-600 text-xl">✕</button>
+              <button
+                onClick={() => removeGoal(idx)}
+                style={{ color: '#dc2626', fontSize: '1.25rem', border: 'none', background: 'none', cursor: 'pointer' }}
+                aria-label={`Remove goal ${goal.name}`}
+              >
+                ✕
+              </button>
             </div>
             {goal.due && (
-              <p className="text-sm text-gray-600 mb-1">Due: {goal.due}</p>
+              <p style={{ fontSize: '0.85rem', color: '#4b5563', marginBottom: '0.5rem' }}>
+                Due: {goal.due}
+              </p>
             )}
-            <div className="w-full bg-gray-200 h-3 rounded-full overflow-hidden mb-1">
+            <div
+              style={{
+                width: '100%',
+                backgroundColor: '#e5e7eb',
+                height: '0.75rem',
+                borderRadius: '9999px',
+                overflow: 'hidden',
+                marginBottom: '0.5rem',
+              }}
+            >
               <div
-                className="h-full bg-green-500 transition-all"
-                style={{ width: `${goal.progress}%` }}
+                style={{
+                  height: '100%',
+                  backgroundColor: '#22c55e',
+                  transition: 'width 0.3s ease',
+                  width: `${goal.progress}%`,
+                }}
               />
             </div>
             <input
@@ -282,32 +439,51 @@ function GoalTracker() {
               max="100"
               value={goal.progress}
               onChange={(e) => updateProgress(idx, parseInt(e.target.value))}
-              className="w-full"
+              style={{ width: '100%' }}
             />
           </li>
         ))}
       </ul>
-      {error && <p className="text-red-600 mt-2">{error}</p>}
-      <div className="mt-4 space-y-2">
+
+      {error && <p style={{ color: '#dc2626', marginBottom: '1rem' }}>{error}</p>}
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         <input
           type="text"
           value={newGoal}
           onChange={(e) => setNewGoal(e.target.value)}
-          className="w-full px-3 py-2 border rounded-md"
           placeholder="New goal"
-          style={{ fontSize: 'clamp(1rem, 1vw, 1.2rem)', padding: 'clamp(0.5rem, 1vw, 0.75rem)' }}
+          style={{
+            padding: 'clamp(0.5rem, 1vw, 0.75rem)',
+            fontSize: 'clamp(1rem, 1vw, 1.2rem)',
+            borderRadius: '0.375rem',
+            border: '1px solid #d1d5db',
+          }}
         />
         <input
           type="date"
           value={dueDate}
           onChange={(e) => setDueDate(e.target.value)}
-          className="w-full px-3 py-2 border rounded-md"
-          style={{ fontSize: 'clamp(1rem, 1vw, 1.2rem)', padding: 'clamp(0.5rem, 1vw, 0.75rem)' }}
+          style={{
+            padding: 'clamp(0.5rem, 1vw, 0.75rem)',
+            fontSize: 'clamp(1rem, 1vw, 1.2rem)',
+            borderRadius: '0.375rem',
+            border: '1px solid #d1d5db',
+          }}
         />
         <button
           onClick={addGoal}
-          className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
-          style={{ fontSize: 'clamp(1rem, 1vw, 1.2rem)' }}
+          style={{
+            backgroundColor: '#2563eb',
+            color: 'white',
+            padding: '0.5rem',
+            borderRadius: '0.375rem',
+            fontSize: 'clamp(1rem, 1vw, 1.2rem)',
+            border: 'none',
+            cursor: 'pointer',
+          }}
+          onMouseOver={e => (e.currentTarget.style.backgroundColor = '#1e40af')}
+          onMouseOut={e => (e.currentTarget.style.backgroundColor = '#2563eb')}
         >
           Add Goal
         </button>
