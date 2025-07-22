@@ -4,9 +4,9 @@ import { useState } from 'react';
 type Page = 'todo' | 'reminders' | 'goals';
 
 // Update these paths to your actual image files in public folder
-const todoImage = '/images/todo.webp';
-const reminderImage = '/images/reminder.jpg';
-const goalsImage = '/images/goals.webp';
+const todoImage = '/images/Todo.webp';
+const reminderImage = '/images/Reminder.jpg';
+const goalsImage = '/images/Goals.webp';
 
 export default function Home() {
   const [page, setPage] = useState<Page>('todo');
