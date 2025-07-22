@@ -4,9 +4,7 @@ import { useState } from 'react';
 type Page = 'todo' | 'reminders' | 'goals';
 
 // Update these paths to your actual image files in public folder
-const todoImage = '/images/Todo.webp';
-const reminderImage = '/images/Reminder.jpg';
-const goalsImage = '/images/Goals.webp';
+
 
 export default function Home() {
   const [page, setPage] = useState<Page>('todo');
@@ -506,7 +504,7 @@ function GoalTracker() {
           src="/images/Goals.webp"
           alt="Goals Illustration"
           style={{
-            maxWidth: '301px',
+            maxWidth: '300px',
             width: '80%',
             height: 'auto',
             borderRadius: '0.75rem',
