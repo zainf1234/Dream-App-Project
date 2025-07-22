@@ -213,7 +213,7 @@ function ToDoList() {
       {/* Image at bottom */}
       <div style={{ marginTop: '2rem', textAlign: 'center' }}>
         <img
-          src={todoImage}
+          src="/images/todo.webp"
           alt="To Do List Illustration"
           style={{
             maxWidth: '300px',
@@ -341,7 +341,7 @@ function Reminders() {
       {/* Image at bottom */}
       <div style={{ marginTop: '2rem', textAlign: 'center' }}>
         <img
-          src={reminderImage}
+          src="/images/reminders.jpg"
           alt="Reminders Illustration"
           style={{
             maxWidth: '300px',
@@ -503,7 +503,7 @@ function GoalTracker() {
       {/* Image at bottom */}
       <div style={{ marginTop: '2rem', textAlign: 'center' }}>
         <img
-          src={goalsImage}
+          src="/images/goals.webp"
           alt="Goals Illustration"
           style={{
             maxWidth: '300px',
