@@ -3,6 +3,11 @@ import { useState } from 'react';
 
 type Page = 'todo' | 'reminders' | 'goals';
 
+// Update these paths to your actual image files in public folder
+const todoImage = '/images/todo.webp';
+const reminderImage = '/images/reminder.jpg';
+const goalsImage = '/images/goals.webp';
+
 export default function Home() {
   const [page, setPage] = useState<Page>('todo');
 
@@ -14,7 +19,6 @@ export default function Home() {
 
   return (
     <>
-      {/* Simplified Nav Bar without red test bar and breadcrumb */}
       <nav
         style={{
           position: 'sticky',
@@ -49,7 +53,6 @@ export default function Home() {
         ))}
       </nav>
 
-      {/* Main Content */}
       <main
         style={{
           minHeight: '100vh',
@@ -206,6 +209,22 @@ function ToDoList() {
           Add Task
         </button>
       </div>
+
+      {/* Image at bottom */}
+      <div style={{ marginTop: '2rem', textAlign: 'center' }}>
+        <img
+          src={todoImage}
+          alt="To Do List Illustration"
+          style={{
+            maxWidth: '300px',
+            width: '80%',
+            height: 'auto',
+            borderRadius: '0.75rem',
+            boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
+            margin: 'auto',
+          }}
+        />
+      </div>
     </div>
   );
 }
@@ -317,6 +336,22 @@ function Reminders() {
         >
           Add Reminder
         </button>
+      </div>
+
+      {/* Image at bottom */}
+      <div style={{ marginTop: '2rem', textAlign: 'center' }}>
+        <img
+          src={reminderImage}
+          alt="Reminders Illustration"
+          style={{
+            maxWidth: '300px',
+            width: '80%',
+            height: 'auto',
+            borderRadius: '0.75rem',
+            boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
+            margin: 'auto',
+          }}
+        />
       </div>
     </div>
   );
@@ -463,6 +498,22 @@ function GoalTracker() {
         >
           Add Goal
         </button>
+      </div>
+
+      {/* Image at bottom */}
+      <div style={{ marginTop: '2rem', textAlign: 'center' }}>
+        <img
+          src={goalsImage}
+          alt="Goals Illustration"
+          style={{
+            maxWidth: '300px',
+            width: '80%',
+            height: 'auto',
+            borderRadius: '0.75rem',
+            boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
+            margin: 'auto',
+          }}
+        />
       </div>
     </div>
   );
