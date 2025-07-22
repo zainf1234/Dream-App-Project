@@ -506,7 +506,7 @@ function GoalTracker() {
           src="/images/Goals.webp"
           alt="Goals Illustration"
           style={{
-            maxWidth: '300px',
+            maxWidth: '301px',
             width: '80%',
             height: 'auto',
             borderRadius: '0.75rem',
