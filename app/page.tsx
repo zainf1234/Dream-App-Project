@@ -341,7 +341,7 @@ function Reminders() {
       {/* Image at bottom */}
       <div style={{ marginTop: '2rem', textAlign: 'center' }}>
         <img
-          src="/images/Reminders.jpg"
+          src="/images/Reminder.jpg"
           alt="Reminders Illustration"
           style={{
             maxWidth: '300px',
