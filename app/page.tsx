@@ -3,8 +3,27 @@ import { useState } from 'react';
 
 type Page = 'todo' | 'reminders' | 'goals';
 
-// Update these paths to your actual image files in public folder
+// Helper function to prefix image URLs when hosted on GitHub Pages with repo name
+function getImageUrl(imagePath: string): string {
+  if (typeof window === 'undefined') {
+    // During SSR, just return imagePath
+    return imagePath;
+  }
 
+  const { hostname, pathname } = window.location;
+
+  if (hostname.endsWith('github.io')) {
+    const repoName = pathname.split('/')[1]; // first path segment after '/'
+    if (repoName) {
+      if (imagePath.startsWith(`/${repoName}`)) {
+        return imagePath; // already prefixed
+      }
+      return `/${repoName}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`;
+    }
+  }
+
+  return imagePath;
+}
 
 export default function Home() {
   const [page, setPage] = useState<Page>('todo');
@@ -211,7 +230,7 @@ function ToDoList() {
       {/* Image at bottom */}
       <div style={{ marginTop: '2rem', textAlign: 'center' }}>
         <img
-          src="/dream-app-project/images/Todo.webp"
+          src={getImageUrl('/dream-app-project/images/Todo.webp')}
           alt="To Do List Illustration"
           style={{
             maxWidth: '300px',
@@ -339,7 +358,7 @@ function Reminders() {
       {/* Image at bottom */}
       <div style={{ marginTop: '2rem', textAlign: 'center' }}>
         <img
-          src="/images/Reminder.jpg"
+          src={getImageUrl('/images/Reminder.jpg')}
           alt="Reminders Illustration"
           style={{
             maxWidth: '300px',
@@ -501,7 +520,7 @@ function GoalTracker() {
       {/* Image at bottom */}
       <div style={{ marginTop: '2rem', textAlign: 'center' }}>
         <img
-          src="/images/Goals.webp"
+          src={getImageUrl('/images/Goals.webp')}
           alt="Goals Illustration"
           style={{
             maxWidth: '300px',
