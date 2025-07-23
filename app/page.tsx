@@ -1,15 +1,16 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 type Page = 'todo' | 'reminders' | 'goals';
 
+// Helper function with your provided logic for GitHub Pages repo prefix
 function withRepoPrefix(src: string): string {
-  if (typeof window !== "undefined") {
+  if (typeof window !== 'undefined') {
     const host = window.location.host;
     // Check for GitHub Pages pattern: userid.github.io/repo-name.com
     // and extract repo name (between first / and .com)
     const match = host.match(/^[^.]+\.github\.io\/([^/]+)/);
-    let repo = "";
+    let repo = '';
     if (match && match[1]) {
       repo = match[1];
     } else {
@@ -20,10 +21,25 @@ function withRepoPrefix(src: string): string {
       }
     }
     if (repo && !src.startsWith(`/${repo}`)) {
-      return `/${repo}${src.startsWith("/") ? src : "/" + src}`;
+      return `/${repo}${src.startsWith('/') ? src : '/' + src}`;
     }
   }
   return src;
+}
+
+// Component to handle image src client-side only
+function RepoImage({ src, alt, style }: { src: string; alt: string; style?: React.CSSProperties }) {
+  const [imgSrc, setImgSrc] = useState('');
+
+  useEffect(() => {
+    setImgSrc(withRepoPrefix(src));
+  }, [src]);
+
+  if (!imgSrc) {
+    return null; // or return a placeholder/spinner if you want
+  }
+
+  return <img src={imgSrc} alt={alt} style={style} />;
 }
 
 export default function Home() {
@@ -230,8 +246,8 @@ function ToDoList() {
 
       {/* Image at bottom */}
       <div style={{ marginTop: '2rem', textAlign: 'center' }}>
-        <img
-          src={withRepoPrefix('/images/Todo.webp')}
+        <RepoImage
+          src="/images/Todo.webp"
           alt="To Do List Illustration"
           style={{
             maxWidth: '300px',
@@ -358,8 +374,8 @@ function Reminders() {
 
       {/* Image at bottom */}
       <div style={{ marginTop: '2rem', textAlign: 'center' }}>
-        <img
-          src={withRepoPrefix('/images/Reminder.jpg')}
+        <RepoImage
+          src="/images/Reminder.jpg"
           alt="Reminders Illustration"
           style={{
             maxWidth: '300px',
@@ -520,8 +536,8 @@ function GoalTracker() {
 
       {/* Image at bottom */}
       <div style={{ marginTop: '2rem', textAlign: 'center' }}>
-        <img
-          src={withRepoPrefix('/images/Goals.webp')}
+        <RepoImage
+          src="/images/Goals.webp"
           alt="Goal Tracker Illustration"
           style={{
             maxWidth: '300px',
