@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 
 type Page = 'todo' | 'reminders' | 'goals';
 
-// Helper function with your provided logic for GitHub Pages repo prefix
 function withRepoPrefix(src: string): string {
   if (typeof window !== 'undefined') {
     const host = window.location.host;
@@ -27,8 +26,15 @@ function withRepoPrefix(src: string): string {
   return src;
 }
 
-// Component to handle image src client-side only
-function RepoImage({ src, alt, style }: { src: string; alt: string; style?: React.CSSProperties }) {
+function RepoImage({
+  src,
+  alt,
+  style,
+}: {
+  src: string;
+  alt: string;
+  style?: React.CSSProperties;
+}) {
   const [imgSrc, setImgSrc] = useState('');
 
   useEffect(() => {
@@ -36,7 +42,7 @@ function RepoImage({ src, alt, style }: { src: string; alt: string; style?: Reac
   }, [src]);
 
   if (!imgSrc) {
-    return null; // or return a placeholder/spinner if you want
+    return null;
   }
 
   return <img src={imgSrc} alt={alt} style={style} />;
@@ -44,6 +50,16 @@ function RepoImage({ src, alt, style }: { src: string; alt: string; style?: Reac
 
 export default function Home() {
   const [page, setPage] = useState<Page>('todo');
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) {
+    // Avoid rendering until we are on client
+    return null;
+  }
 
   const breadcrumbLabels: Record<Page, string> = {
     todo: 'To Do List',
@@ -118,7 +134,8 @@ export default function Home() {
   );
 }
 
-// --------- ToDoList ---------
+// ToDoList, Reminders, GoalTracker components below — same as before, using <RepoImage> for images:
+
 function ToDoList() {
   const [tasks, setTasks] = useState([
     { text: 'Finish homework', done: false, due: '2025-07-22' },
@@ -244,7 +261,6 @@ function ToDoList() {
         </button>
       </div>
 
-      {/* Image at bottom */}
       <div style={{ marginTop: '2rem', textAlign: 'center' }}>
         <RepoImage
           src="/images/Todo.webp"
@@ -263,7 +279,6 @@ function ToDoList() {
   );
 }
 
-// --------- Reminders ---------
 function Reminders() {
   const [reminders, setReminders] = useState([
     { text: 'Dentist appointment', time: '2025-07-21T10:00' },
@@ -372,7 +387,6 @@ function Reminders() {
         </button>
       </div>
 
-      {/* Image at bottom */}
       <div style={{ marginTop: '2rem', textAlign: 'center' }}>
         <RepoImage
           src="/images/Reminder.jpg"
@@ -391,7 +405,6 @@ function Reminders() {
   );
 }
 
-// --------- Goal Tracker ---------
 function GoalTracker() {
   const [goals, setGoals] = useState([
     { name: 'Run 5km', progress: 60, due: '2025-08-01' },
@@ -534,7 +547,6 @@ function GoalTracker() {
         </button>
       </div>
 
-      {/* Image at bottom */}
       <div style={{ marginTop: '2rem', textAlign: 'center' }}>
         <RepoImage
           src="/images/Goals.webp"
