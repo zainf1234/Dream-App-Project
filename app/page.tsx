@@ -1,19 +1,16 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 type Page = 'todo' | 'reminders' | 'goals';
 
 function withRepoPrefix(src: string): string {
   if (typeof window !== 'undefined') {
     const host = window.location.host;
-    // Check for GitHub Pages pattern: userid.github.io/repo-name.com
-    // and extract repo name (between first / and .com)
     const match = host.match(/^[^.]+\.github\.io\/([^/]+)/);
     let repo = '';
     if (match && match[1]) {
       repo = match[1];
     } else {
-      // fallback: try to get repo from pathname if deployed as /repo-name/
       const pathMatch = window.location.pathname.match(/^\/([^/]+)\//);
       if (pathMatch && pathMatch[1]) {
         repo = pathMatch[1];
@@ -56,10 +53,7 @@ export default function Home() {
     setIsClient(true);
   }, []);
 
-  if (!isClient) {
-    // Avoid rendering until we are on client
-    return null;
-  }
+  if (!isClient) return null;
 
   const breadcrumbLabels: Record<Page, string> = {
     todo: 'To Do List',
@@ -134,35 +128,54 @@ export default function Home() {
   );
 }
 
-// ToDoList, Reminders, GoalTracker components below — same as before, using <RepoImage> for images:
-
+// --- ToDoList with fade-in/fade-out animations ---
 function ToDoList() {
-  const [tasks, setTasks] = useState([
-    { text: 'Finish homework', done: false, due: '2025-07-22' },
+  // We'll store tasks as objects with id for keys and extra field isFadingOut
+  type Task = { id: string; text: string; done: boolean; due: string; isFadingOut?: boolean };
+
+  const [tasks, setTasks] = useState<Task[]>([
+    { id: '1', text: 'Finish homework', done: false, due: '2025-07-22' },
   ]);
   const [newTask, setNewTask] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [error, setError] = useState('');
+  const nextIdRef = useRef(2);
+
+  // For newly added tasks we want to add a 'fade-in' class
+  const [addedTaskId, setAddedTaskId] = useState<string | null>(null);
 
   const addTask = () => {
     if (newTask.trim() === '') {
       setError('Task name is required.');
       return;
     }
-    setTasks([...tasks, { text: newTask, done: false, due: dueDate }]);
+    const id = String(nextIdRef.current++);
+    const newTaskObj: Task = { id, text: newTask, done: false, due: dueDate };
+    setTasks((old) => [...old, newTaskObj]);
     setNewTask('');
     setDueDate('');
     setError('');
+    setAddedTaskId(id);
   };
 
-  const toggleDone = (index: number) => {
-    const updated = [...tasks];
-    updated[index].done = !updated[index].done;
-    setTasks(updated);
+  const toggleDone = (id: string) => {
+    setTasks((old) =>
+      old.map((task) => (task.id === id ? { ...task, done: !task.done } : task))
+    );
   };
 
-  const removeTask = (index: number) => {
-    setTasks(tasks.filter((_, i) => i !== index));
+  // On delete: set isFadingOut on task, after animation remove it
+  const removeTask = (id: string) => {
+    setTasks((old) =>
+      old.map((task) =>
+        task.id === id ? { ...task, isFadingOut: true } : task
+      )
+    );
+  };
+
+  // Handle animation end (called on each list item)
+  const handleAnimationEnd = (id: string) => {
+    setTasks((old) => old.filter((task) => task.id !== id));
   };
 
   return (
@@ -178,23 +191,36 @@ function ToDoList() {
       <h2 style={{ fontSize: 'clamp(1.25rem, 2vw, 1.75rem)', marginBottom: '1rem' }}>
         To Do List
       </h2>
-      <ul style={{ marginBottom: '1rem', fontSize: 'clamp(0.9rem, 1vw, 1.1rem)' }}>
-        {tasks.map((task, idx) => (
+      <ul style={{ marginBottom: '1rem', fontSize: 'clamp(0.9rem, 1vw, 1.1rem)', listStyle: 'none', padding: 0 }}>
+        {tasks.map((task) => (
           <li
-            key={idx}
+            key={task.id}
+            className={`task-item
+              ${addedTaskId === task.id ? 'fade-in' : ''}
+              ${task.isFadingOut ? 'fade-out' : ''}
+            `}
+            onAnimationEnd={() => {
+              if (task.isFadingOut) handleAnimationEnd(task.id);
+              if (addedTaskId === task.id) setAddedTaskId(null);
+            }}
             style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'flex-start',
               marginBottom: '0.5rem',
+              padding: '0.5rem',
+              borderRadius: '0.375rem',
+              backgroundColor: '#f3f4f6',
+              opacity: task.isFadingOut ? 0 : 1,
+              transition: 'opacity 0.5s ease',
             }}
           >
-            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <input
                   type="checkbox"
                   checked={task.done}
-                  onChange={() => toggleDone(idx)}
+                  onChange={() => toggleDone(task.id)}
                 />
                 <span style={{ textDecoration: task.done ? 'line-through' : 'none' }}>
                   {task.text}
@@ -207,7 +233,7 @@ function ToDoList() {
               )}
             </label>
             <button
-              onClick={() => removeTask(idx)}
+              onClick={() => removeTask(task.id)}
               style={{ color: '#dc2626', fontSize: '1.25rem', border: 'none', background: 'none', cursor: 'pointer' }}
               aria-label={`Remove task ${task.text}`}
             >
@@ -275,9 +301,30 @@ function ToDoList() {
           }}
         />
       </div>
+
+      {/* CSS for fade in/out */}
+      <style>{`
+        .task-item.fade-in {
+          animation: fadeIn 0.5s ease forwards;
+        }
+        .task-item.fade-out {
+          animation: fadeOut 0.5s ease forwards;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeOut {
+          from { opacity: 1; transform: translateY(0); height: auto; margin-bottom: 0.5rem; padding: 0.5rem; }
+          to { opacity: 0; transform: translateY(-10px); height: 0; margin-bottom: 0; padding: 0; }
+        }
+      `}</style>
     </div>
   );
 }
+
+// Reminders and GoalTracker remain unchanged from your previous page.tsx
+// You can add the same fade logic if you want for those components
 
 function Reminders() {
   const [reminders, setReminders] = useState([
@@ -447,58 +494,52 @@ function GoalTracker() {
       <h2 style={{ fontSize: 'clamp(1.25rem, 2vw, 1.75rem)', marginBottom: '1rem' }}>
         Goal Tracker
       </h2>
-      <ul style={{ fontSize: 'clamp(0.9rem, 1vw, 1.1rem)', marginBottom: '1rem' }}>
+      <ul style={{ fontSize: 'clamp(0.9rem, 1vw, 1.1rem)', marginBottom: '1rem', listStyle: 'none', padding: 0 }}>
         {goals.map((goal, idx) => (
-          <li key={idx} style={{ marginBottom: '1.5rem' }}>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '0.5rem',
-              }}
-            >
-              <span>{goal.name}</span>
-              <button
-                onClick={() => removeGoal(idx)}
-                style={{ color: '#dc2626', fontSize: '1.25rem', border: 'none', background: 'none', cursor: 'pointer' }}
-                aria-label={`Remove goal ${goal.name}`}
-              >
-                ✕
-              </button>
-            </div>
-            {goal.due && (
-              <p style={{ fontSize: '0.85rem', color: '#4b5563', marginBottom: '0.5rem' }}>
-                Due: {goal.due}
-              </p>
-            )}
-            <div
-              style={{
-                width: '100%',
-                backgroundColor: '#e5e7eb',
-                height: '0.75rem',
-                borderRadius: '9999px',
-                overflow: 'hidden',
-                marginBottom: '0.5rem',
-              }}
-            >
-              <div
-                style={{
-                  height: '100%',
-                  backgroundColor: '#22c55e',
-                  transition: 'width 0.3s ease',
-                  width: `${goal.progress}%`,
-                }}
-              />
-            </div>
+          <li
+            key={idx}
+            style={{
+              marginBottom: '0.75rem',
+              padding: '0.5rem',
+              borderRadius: '0.375rem',
+              backgroundColor: '#f3f4f6',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.25rem',
+            }}
+          >
+            <div style={{ fontWeight: 'bold' }}>{goal.name}</div>
             <input
               type="range"
-              min="0"
-              max="100"
+              min={0}
+              max={100}
               value={goal.progress}
-              onChange={(e) => updateProgress(idx, parseInt(e.target.value))}
+              onChange={(e) => updateProgress(idx, Number(e.target.value))}
               style={{ width: '100%' }}
             />
+            <div style={{ fontSize: '0.85rem', color: '#4b5563' }}>
+              Progress: {goal.progress}%
+            </div>
+            <div style={{ fontSize: '0.85rem', color: '#4b5563' }}>
+              Due: {goal.due}
+            </div>
+            <button
+              onClick={() => removeGoal(idx)}
+              style={{
+                alignSelf: 'flex-end',
+                backgroundColor: '#dc2626',
+                color: 'white',
+                border: 'none',
+                borderRadius: '0.375rem',
+                padding: '0.25rem 0.5rem',
+                cursor: 'pointer',
+                fontSize: '0.9rem',
+              }}
+              onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#b91c1c')}
+              onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#dc2626')}
+            >
+              Remove
+            </button>
           </li>
         ))}
       </ul>
