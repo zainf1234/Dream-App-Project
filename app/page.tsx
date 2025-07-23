@@ -130,9 +130,7 @@ export default function Home() {
 
 // --- ToDoList with fade-in/fade-out animations ---
 function ToDoList() {
-  // We'll store tasks as objects with id for keys and extra field isFadingOut
   type Task = { id: string; text: string; done: boolean; due: string; isFadingOut?: boolean };
-
   const [tasks, setTasks] = useState<Task[]>([
     { id: '1', text: 'Finish homework', done: false, due: '2025-07-22' },
   ]);
@@ -140,8 +138,6 @@ function ToDoList() {
   const [dueDate, setDueDate] = useState('');
   const [error, setError] = useState('');
   const nextIdRef = useRef(2);
-
-  // For newly added tasks we want to add a 'fade-in' class
   const [addedTaskId, setAddedTaskId] = useState<string | null>(null);
 
   const addTask = () => {
@@ -164,7 +160,6 @@ function ToDoList() {
     );
   };
 
-  // On delete: set isFadingOut on task, after animation remove it
   const removeTask = (id: string) => {
     setTasks((old) =>
       old.map((task) =>
@@ -173,7 +168,6 @@ function ToDoList() {
     );
   };
 
-  // Handle animation end (called on each list item)
   const handleAnimationEnd = (id: string) => {
     setTasks((old) => old.filter((task) => task.id !== id));
   };
@@ -302,51 +296,46 @@ function ToDoList() {
         />
       </div>
 
-      {/* CSS for fade in/out */}
-      <style>{`
-        .task-item.fade-in {
-          animation: fadeIn 0.5s ease forwards;
-        }
-        .task-item.fade-out {
-          animation: fadeOut 0.5s ease forwards;
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(-10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes fadeOut {
-          from { opacity: 1; transform: translateY(0); height: auto; margin-bottom: 0.5rem; padding: 0.5rem; }
-          to { opacity: 0; transform: translateY(-10px); height: 0; margin-bottom: 0; padding: 0; }
-        }
-      `}</style>
+      <FadeStyles />
     </div>
   );
 }
 
-// Reminders and GoalTracker remain unchanged from your previous page.tsx
-// You can add the same fade logic if you want for those components
-
+// --- Reminders with fade-in/fade-out animations ---
 function Reminders() {
-  const [reminders, setReminders] = useState([
-    { text: 'Dentist appointment', time: '2025-07-21T10:00' },
+  type Reminder = { id: string; text: string; time: string; isFadingOut?: boolean };
+  const [reminders, setReminders] = useState<Reminder[]>([
+    { id: '1', text: 'Dentist appointment', time: '2025-07-21T10:00', isFadingOut: false },
   ]);
   const [text, setText] = useState('');
   const [time, setTime] = useState('');
   const [error, setError] = useState('');
+  const nextIdRef = useRef(2);
+  const [addedId, setAddedId] = useState<string | null>(null);
 
   const addReminder = () => {
     if (text.trim() === '' || !time) {
       setError('Reminder and time are required.');
       return;
     }
-    setReminders([...reminders, { text, time }]);
+    const id = String(nextIdRef.current++);
+    setReminders((old) => [...old, { id, text, time }]);
     setText('');
     setTime('');
     setError('');
+    setAddedId(id);
   };
 
-  const removeReminder = (index: number) => {
-    setReminders(reminders.filter((_, i) => i !== index));
+  const removeReminder = (id: string) => {
+    setReminders((old) =>
+      old.map((r) =>
+        r.id === id ? { ...r, isFadingOut: true } : r
+      )
+    );
+  };
+
+  const handleAnimationEnd = (id: string) => {
+    setReminders((old) => old.filter((r) => r.id !== id));
   };
 
   return (
@@ -362,15 +351,28 @@ function Reminders() {
       <h2 style={{ fontSize: 'clamp(1.25rem, 2vw, 1.75rem)', marginBottom: '1rem' }}>
         Reminders
       </h2>
-      <ul style={{ fontSize: 'clamp(0.9rem, 1vw, 1.1rem)', marginBottom: '1rem' }}>
-        {reminders.map((r, idx) => (
+      <ul style={{ fontSize: 'clamp(0.9rem, 1vw, 1.1rem)', marginBottom: '1rem', listStyle: 'none', padding: 0 }}>
+        {reminders.map((r) => (
           <li
-            key={idx}
+            key={r.id}
+            className={`task-item
+              ${addedId === r.id ? 'fade-in' : ''}
+              ${r.isFadingOut ? 'fade-out' : ''}
+            `}
+            onAnimationEnd={() => {
+              if (r.isFadingOut) handleAnimationEnd(r.id);
+              if (addedId === r.id) setAddedId(null);
+            }}
             style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
               marginBottom: '0.5rem',
+              padding: '0.5rem',
+              borderRadius: '0.375rem',
+              backgroundColor: '#f3f4f6',
+              opacity: r.isFadingOut ? 0 : 1,
+              transition: 'opacity 0.5s ease',
             }}
           >
             <div>
@@ -380,7 +382,7 @@ function Reminders() {
               </p>
             </div>
             <button
-              onClick={() => removeReminder(idx)}
+              onClick={() => removeReminder(r.id)}
               style={{ color: '#dc2626', fontSize: '1.25rem', border: 'none', background: 'none', cursor: 'pointer' }}
               aria-label={`Remove reminder ${r.text}`}
             >
@@ -448,37 +450,53 @@ function Reminders() {
           }}
         />
       </div>
+
+      <FadeStyles />
     </div>
   );
 }
 
+// --- GoalTracker with fade-in/fade-out animations ---
 function GoalTracker() {
-  const [goals, setGoals] = useState([
-    { name: 'Run 5km', progress: 60, due: '2025-08-01' },
+  type Goal = { id: string; name: string; progress: number; due: string; isFadingOut?: boolean };
+  const [goals, setGoals] = useState<Goal[]>([
+    { id: '1', name: 'Run 5km', progress: 60, due: '2025-08-01' },
   ]);
   const [newGoal, setNewGoal] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [error, setError] = useState('');
+  const nextIdRef = useRef(2);
+  const [addedId, setAddedId] = useState<string | null>(null);
 
   const addGoal = () => {
     if (newGoal.trim() === '') {
       setError('Goal name is required.');
       return;
     }
-    setGoals([...goals, { name: newGoal, progress: 0, due: dueDate }]);
+    const id = String(nextIdRef.current++);
+    setGoals([...goals, { id, name: newGoal, progress: 0, due: dueDate }]);
     setNewGoal('');
     setDueDate('');
     setError('');
+    setAddedId(id);
   };
 
-  const removeGoal = (index: number) => {
-    setGoals(goals.filter((_, i) => i !== index));
+  const removeGoal = (id: string) => {
+    setGoals((old) =>
+      old.map((g) =>
+        g.id === id ? { ...g, isFadingOut: true } : g
+      )
+    );
   };
 
-  const updateProgress = (index: number, newProgress: number) => {
-    const updated = [...goals];
-    updated[index].progress = newProgress;
-    setGoals(updated);
+  const updateProgress = (id: string, newProgress: number) => {
+    setGoals((old) =>
+      old.map((g) => (g.id === id ? { ...g, progress: newProgress } : g))
+    );
+  };
+
+  const handleAnimationEnd = (id: string) => {
+    setGoals((old) => old.filter((g) => g.id !== id));
   };
 
   return (
@@ -495,9 +513,17 @@ function GoalTracker() {
         Goal Tracker
       </h2>
       <ul style={{ fontSize: 'clamp(0.9rem, 1vw, 1.1rem)', marginBottom: '1rem', listStyle: 'none', padding: 0 }}>
-        {goals.map((goal, idx) => (
+        {goals.map((goal) => (
           <li
-            key={idx}
+            key={goal.id}
+            className={`task-item
+              ${addedId === goal.id ? 'fade-in' : ''}
+              ${goal.isFadingOut ? 'fade-out' : ''}
+            `}
+            onAnimationEnd={() => {
+              if (goal.isFadingOut) handleAnimationEnd(goal.id);
+              if (addedId === goal.id) setAddedId(null);
+            }}
             style={{
               marginBottom: '0.75rem',
               padding: '0.5rem',
@@ -506,6 +532,8 @@ function GoalTracker() {
               display: 'flex',
               flexDirection: 'column',
               gap: '0.25rem',
+              opacity: goal.isFadingOut ? 0 : 1,
+              transition: 'opacity 0.5s ease',
             }}
           >
             <div style={{ fontWeight: 'bold' }}>{goal.name}</div>
@@ -514,7 +542,7 @@ function GoalTracker() {
               min={0}
               max={100}
               value={goal.progress}
-              onChange={(e) => updateProgress(idx, Number(e.target.value))}
+              onChange={(e) => updateProgress(goal.id, Number(e.target.value))}
               style={{ width: '100%' }}
             />
             <div style={{ fontSize: '0.85rem', color: '#4b5563' }}>
@@ -524,7 +552,7 @@ function GoalTracker() {
               Due: {goal.due}
             </div>
             <button
-              onClick={() => removeGoal(idx)}
+              onClick={() => removeGoal(goal.id)}
               style={{
                 alignSelf: 'flex-end',
                 backgroundColor: '#dc2626',
@@ -602,6 +630,48 @@ function GoalTracker() {
           }}
         />
       </div>
+
+      <FadeStyles />
     </div>
+  );
+}
+
+// --- Shared CSS Animations styles ---
+function FadeStyles() {
+  return (
+    <style>{`
+      @keyframes fade-in {
+        0% {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes fade-out {
+        0% {
+          opacity: 1;
+          transform: translateY(0);
+          height: auto;
+          margin-bottom: 0.5rem;
+          padding: 0.5rem;
+        }
+        100% {
+          opacity: 0;
+          transform: translateY(20px);
+          height: 0;
+          margin-bottom: 0;
+          padding: 0;
+        }
+      }
+      .fade-in {
+        animation: fade-in 0.4s ease forwards;
+      }
+      .fade-out {
+        animation: fade-out 0.4s ease forwards;
+      }
+    `}</style>
   );
 }
