@@ -3,26 +3,27 @@ import { useState } from 'react';
 
 type Page = 'todo' | 'reminders' | 'goals';
 
-// Helper function to prefix image URLs when hosted on GitHub Pages with repo name
-function getImageUrl(imagePath: string): string {
-  if (typeof window === 'undefined') {
-    // During SSR, just return imagePath
-    return imagePath;
-  }
-
-  const { hostname, pathname } = window.location;
-
-  if (hostname.endsWith('github.io')) {
-    const repoName = pathname.split('/')[1]; // first path segment after '/'
-    if (repoName) {
-      if (imagePath.startsWith(`/${repoName}`)) {
-        return imagePath; // already prefixed
+function withRepoPrefix(src: string): string {
+  if (typeof window !== "undefined") {
+    const host = window.location.host;
+    // Check for GitHub Pages pattern: userid.github.io/repo-name.com
+    // and extract repo name (between first / and .com)
+    const match = host.match(/^[^.]+\.github\.io\/([^/]+)/);
+    let repo = "";
+    if (match && match[1]) {
+      repo = match[1];
+    } else {
+      // fallback: try to get repo from pathname if deployed as /repo-name/
+      const pathMatch = window.location.pathname.match(/^\/([^/]+)\//);
+      if (pathMatch && pathMatch[1]) {
+        repo = pathMatch[1];
       }
-      return `/${repoName}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`;
+    }
+    if (repo && !src.startsWith(`/${repo}`)) {
+      return `/${repo}${src.startsWith("/") ? src : "/" + src}`;
     }
   }
-
-  return imagePath;
+  return src;
 }
 
 export default function Home() {
@@ -230,7 +231,7 @@ function ToDoList() {
       {/* Image at bottom */}
       <div style={{ marginTop: '2rem', textAlign: 'center' }}>
         <img
-          src={getImageUrl('/images/Todo.webp')}
+          src={withRepoPrefix('/images/Todo.webp')}
           alt="To Do List Illustration"
           style={{
             maxWidth: '300px',
@@ -358,7 +359,7 @@ function Reminders() {
       {/* Image at bottom */}
       <div style={{ marginTop: '2rem', textAlign: 'center' }}>
         <img
-          src={getImageUrl('/images/Reminder.jpg')}
+          src={withRepoPrefix('/images/Reminder.jpg')}
           alt="Reminders Illustration"
           style={{
             maxWidth: '300px',
@@ -520,8 +521,8 @@ function GoalTracker() {
       {/* Image at bottom */}
       <div style={{ marginTop: '2rem', textAlign: 'center' }}>
         <img
-          src={getImageUrl('/images/Goals.webp')}
-          alt="Goals Illustration"
+          src={withRepoPrefix('/images/Goals.webp')}
+          alt="Goal Tracker Illustration"
           style={{
             maxWidth: '300px',
             width: '80%',
