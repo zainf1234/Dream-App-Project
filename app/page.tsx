@@ -230,7 +230,7 @@ function ToDoList() {
       {/* Image at bottom */}
       <div style={{ marginTop: '2rem', textAlign: 'center' }}>
         <img
-          src={getImageUrl('/dream-app-project/images/Todo.webp')}
+          src={getImageUrl('/images/Todo.webp')}
           alt="To Do List Illustration"
           style={{
             maxWidth: '300px',
