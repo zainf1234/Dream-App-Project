@@ -301,7 +301,7 @@ function ToDoList() {
   );
 }
 
-// --- Reminders with fade-in/fade-out animations ---
+// --- Reminders with fade-in/fade-out and notifications ---
 function Reminders() {
   type Reminder = { id: string; text: string; time: string; isFadingOut?: boolean };
   const [reminders, setReminders] = useState<Reminder[]>([
@@ -312,6 +312,50 @@ function Reminders() {
   const [error, setError] = useState('');
   const nextIdRef = useRef(2);
   const [addedId, setAddedId] = useState<string | null>(null);
+  const notificationTimers = useRef<Map<string, NodeJS.Timeout>>(new Map());
+
+  // Request Notification permission on mount
+  useEffect(() => {
+    if ('Notification' in window) {
+      if (Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
+    }
+  }, []);
+
+  // Setup notification timers for reminders
+  useEffect(() => {
+    // Clear old timers
+    notificationTimers.current.forEach((timer) => clearTimeout(timer));
+    notificationTimers.current.clear();
+
+    if (Notification.permission !== 'granted') return;
+
+    reminders.forEach((r) => {
+      const reminderTime = new Date(r.time).getTime();
+      const notifyTime = reminderTime - 60 * 60 * 1000; // 1 hour before
+
+      const now = Date.now();
+      if (notifyTime > now) {
+        const timeoutDuration = notifyTime - now;
+        const timer = setTimeout(() => {
+          new Notification('Reminder', {
+            body: `${r.text} at ${new Date(r.time).toLocaleString()}`,
+            icon: '/favicon.ico',
+          });
+          notificationTimers.current.delete(r.id);
+        }, timeoutDuration);
+
+        notificationTimers.current.set(r.id, timer);
+      }
+    });
+
+    // Cleanup timers on unmount or reminders change
+    return () => {
+      notificationTimers.current.forEach((timer) => clearTimeout(timer));
+      notificationTimers.current.clear();
+    };
+  }, [reminders]);
 
   const addReminder = () => {
     if (text.trim() === '' || !time) {
@@ -456,11 +500,17 @@ function Reminders() {
   );
 }
 
-// --- GoalTracker with fade-in/fade-out animations ---
+// --- GoalTracker with fade-in/fade-out ---
 function GoalTracker() {
-  type Goal = { id: string; name: string; progress: number; due: string; isFadingOut?: boolean };
+  type Goal = {
+    id: string;
+    name: string;
+    progress: number;
+    due: string;
+    isFadingOut?: boolean;
+  };
   const [goals, setGoals] = useState<Goal[]>([
-    { id: '1', name: 'Run 5km', progress: 60, due: '2025-08-01' },
+    { id: '1', name: 'Learn React', progress: 40, due: '2025-08-01' },
   ]);
   const [newGoal, setNewGoal] = useState('');
   const [dueDate, setDueDate] = useState('');
@@ -474,7 +524,7 @@ function GoalTracker() {
       return;
     }
     const id = String(nextIdRef.current++);
-    setGoals([...goals, { id, name: newGoal, progress: 0, due: dueDate }]);
+    setGoals((old) => [...old, { id, name: newGoal, progress: 0, due: dueDate }]);
     setNewGoal('');
     setDueDate('');
     setError('');
