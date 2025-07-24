@@ -108,7 +108,6 @@ function ToDoList() {
     done: boolean;
     due: string;
     isFadingOut?: boolean;
-    isAnimatingCheck?: boolean; // for fade on check/uncheck
   };
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTask, setNewTask] = useState('');
@@ -116,7 +115,6 @@ function ToDoList() {
   const [error, setError] = useState('');
   const nextIdRef = useRef(1);
   const [addedId, setAddedId] = useState<string | null>(null);
-  const [checkedAnimId, setCheckedAnimId] = useState<string | null>(null);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -150,28 +148,11 @@ function ToDoList() {
     setAddedId(id);
   };
 
-  // Fade animation for check/uncheck
   const toggleDone = (id: string) => {
     setTasks((old) =>
-      old.map((t) => (t.id === id ? { ...t, isAnimatingCheck: true } : t))
+      old.map((t) => (t.id === id ? { ...t, done: !t.done } : t))
     );
-    setCheckedAnimId(id);
   };
-
-  // After animation, toggle done state and clear anim flag
-  useEffect(() => {
-    if (checkedAnimId) {
-      const timer = setTimeout(() => {
-        setTasks((old) =>
-          old.map((t) =>
-            t.id === checkedAnimId ? { ...t, done: !t.done, isAnimatingCheck: false } : t
-          )
-        );
-        setCheckedAnimId(null);
-      }, 300); // animation duration
-      return () => clearTimeout(timer);
-    }
-  }, [checkedAnimId]);
 
   const removeTask = (id: string) => {
     setTasks((old) =>
@@ -202,17 +183,13 @@ function ToDoList() {
         {tasks.map((task) => (
           <li
             key={task.id}
-            className={`
+            className={`task-item
               ${addedId === task.id ? 'fade-in' : ''}
               ${task.isFadingOut ? 'fade-out' : ''}
-              ${task.isAnimatingCheck ? 'fade-check' : ''}
             `}
             onAnimationEnd={() => {
               if (task.isFadingOut) handleAnimationEnd(task.id);
               if (addedId === task.id) setAddedId(null);
-              if (task.isAnimatingCheck) {
-                // handled by useEffect toggleDone
-              }
             }}
             style={{
               display: 'flex',
@@ -231,7 +208,6 @@ function ToDoList() {
                 <input
                   type="checkbox"
                   checked={task.done}
-                  disabled={task.isAnimatingCheck}
                   onChange={() => toggleDone(task.id)}
                 />
                 <span style={{ textDecoration: task.done ? 'line-through' : 'none' }}>
@@ -502,7 +478,7 @@ function Reminders() {
 
       <div style={{ marginTop: '2rem', textAlign: 'center' }}>
         <img
-          src={withRepoPrefix('/images/Reminders.webp')}
+          src={withRepoPrefix('/images/Reminder.jpg')}
           alt="Reminders Illustration"
           style={{
             maxWidth: '300px',
@@ -520,21 +496,18 @@ function Reminders() {
   );
 }
 
-// --------- GoalTracker with persistence and fade ---------
+// --------- Goal Tracker ---------
 function GoalTracker() {
   type Goal = {
     id: string;
     text: string;
     isFadingOut?: boolean;
   };
-
   const [goals, setGoals] = useState<Goal[]>([]);
   const [newGoal, setNewGoal] = useState('');
-  const [error, setError] = useState('');
   const nextIdRef = useRef(1);
   const [addedId, setAddedId] = useState<string | null>(null);
 
-  // Load from localStorage
   useEffect(() => {
     const saved = localStorage.getItem('goals');
     if (saved) {
@@ -543,25 +516,20 @@ function GoalTracker() {
       const maxId = parsed.reduce((max, g) => Math.max(max, parseInt(g.id)), 0);
       nextIdRef.current = maxId + 1;
     } else {
-      setGoals([{ id: '0', text: 'Run a marathon' }]);
+      setGoals([{ id: '0', text: 'Learn React' }]);
       nextIdRef.current = 1;
     }
   }, []);
 
-  // Save to localStorage
   useEffect(() => {
     localStorage.setItem('goals', JSON.stringify(goals));
   }, [goals]);
 
   const addGoal = () => {
-    if (newGoal.trim() === '') {
-      setError('Goal text is required.');
-      return;
-    }
+    if (newGoal.trim() === '') return;
     const id = String(nextIdRef.current++);
     setGoals((old) => [...old, { id, text: newGoal }]);
     setNewGoal('');
-    setError('');
     setAddedId(id);
   };
 
@@ -591,16 +559,16 @@ function GoalTracker() {
         Goal Tracker
       </h2>
       <ul style={{ fontSize: 'clamp(0.9rem, 1vw, 1.1rem)', marginBottom: '1rem', listStyle: 'none', padding: 0 }}>
-        {goals.map((goal) => (
+        {goals.map((g) => (
           <li
-            key={goal.id}
+            key={g.id}
             className={`task-item
-              ${addedId === goal.id ? 'fade-in' : ''}
-              ${goal.isFadingOut ? 'fade-out' : ''}
+              ${addedId === g.id ? 'fade-in' : ''}
+              ${g.isFadingOut ? 'fade-out' : ''}
             `}
             onAnimationEnd={() => {
-              if (goal.isFadingOut) handleAnimationEnd(goal.id);
-              if (addedId === goal.id) setAddedId(null);
+              if (g.isFadingOut) handleAnimationEnd(g.id);
+              if (addedId === g.id) setAddedId(null);
             }}
             style={{
               display: 'flex',
@@ -610,24 +578,21 @@ function GoalTracker() {
               padding: '0.5rem',
               borderRadius: '0.375rem',
               backgroundColor: '#f3f4f6',
-              opacity: goal.isFadingOut ? 0 : 1,
+              opacity: g.isFadingOut ? 0 : 1,
               transition: 'opacity 0.5s ease',
             }}
           >
-            <span>{goal.text}</span>
+            <span>{g.text}</span>
             <button
-              onClick={() => removeGoal(goal.id)}
+              onClick={() => removeGoal(g.id)}
               style={{ color: '#dc2626', fontSize: '1.25rem', border: 'none', background: 'none', cursor: 'pointer' }}
-              aria-label={`Remove goal ${goal.text}`}
+              aria-label={`Remove goal ${g.text}`}
             >
               ✕
             </button>
           </li>
         ))}
       </ul>
-
-      {error && <p style={{ color: '#dc2626', marginBottom: '1rem' }}>{error}</p>}
-
       <div style={{ display: 'flex', gap: '0.5rem' }}>
         <input
           type="text"
@@ -680,34 +645,24 @@ function GoalTracker() {
   );
 }
 
-// --------- Shared fade in/out animation styles ---------
+// ---------- Fade styles component ----------
 function FadeStyles() {
   return (
-    <style>
-      {`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px);}
-          to { opacity: 1; transform: translateY(0);}
-        }
-        @keyframes fadeOut {
-          from { opacity: 1; max-height: 100px; margin-bottom: 0.5rem;}
-          to { opacity: 0; max-height: 0; margin-bottom: 0; padding: 0;}
-        }
-        @keyframes fadeCheck {
-          0% { opacity: 1; background-color: transparent; }
-          50% { opacity: 0.5; background-color: #60a5fa; }
-          100% { opacity: 1; background-color: transparent; }
-        }
-        .fade-in {
-          animation: fadeIn 0.3s ease forwards;
-        }
-        .fade-out {
-          animation: fadeOut 0.5s ease forwards;
-        }
-        .fade-check {
-          animation: fadeCheck 0.3s ease forwards;
-        }
-      `}
-    </style>
+    <style>{`
+      .fade-in {
+        animation: fadeIn 0.5s ease forwards;
+      }
+      .fade-out {
+        animation: fadeOut 0.5s ease forwards;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes fadeOut {
+        from { opacity: 1; transform: translateY(0); }
+        to { opacity: 0; transform: translateY(-10px); }
+      }
+    `}</style>
   );
 }
