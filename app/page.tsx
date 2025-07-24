@@ -84,9 +84,10 @@ export default function Home() {
           My Productivity Tools
         </h1>
 
-        {page === 'todo' && <ToDoList />}
-        {page === 'reminders' && <Reminders />}
-        {page === 'goals' && <GoalTracker />}
+        {page === 'todo' && <ToDoList key="todo" />}
+        {page === 'reminders' && <Reminders key="reminders" />}
+        {page === 'goals' && <GoalTracker key="goals" />}
+
       </main>
     </>
   );
