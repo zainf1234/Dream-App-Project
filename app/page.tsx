@@ -3,11 +3,12 @@ import { useState, useEffect, useRef } from 'react';
 
 type Page = 'todo' | 'reminders' | 'goals';
 
+// Utility to prefix repo for images on GitHub Pages
 function withRepoPrefix(src: string): string {
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     const host = window.location.host;
     const match = host.match(/^[^.]+\.github\.io\/([^/]+)/);
-    let repo = '';
+    let repo = "";
     if (match && match[1]) {
       repo = match[1];
     } else {
@@ -17,43 +18,14 @@ function withRepoPrefix(src: string): string {
       }
     }
     if (repo && !src.startsWith(`/${repo}`)) {
-      return `/${repo}${src.startsWith('/') ? src : '/' + src}`;
+      return `/${repo}${src.startsWith("/") ? src : "/" + src}`;
     }
   }
   return src;
 }
 
-function RepoImage({
-  src,
-  alt,
-  style,
-}: {
-  src: string;
-  alt: string;
-  style?: React.CSSProperties;
-}) {
-  const [imgSrc, setImgSrc] = useState('');
-
-  useEffect(() => {
-    setImgSrc(withRepoPrefix(src));
-  }, [src]);
-
-  if (!imgSrc) {
-    return null;
-  }
-
-  return <img src={imgSrc} alt={alt} style={style} />;
-}
-
 export default function Home() {
   const [page, setPage] = useState<Page>('todo');
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  if (!isClient) return null;
 
   const breadcrumbLabels: Record<Page, string> = {
     todo: 'To Do List',
@@ -128,17 +100,42 @@ export default function Home() {
   );
 }
 
-// --- ToDoList with fade-in/fade-out animations ---
+// --------- ToDoList with persistence and fade ---------
 function ToDoList() {
-  type Task = { id: string; text: string; done: boolean; due: string; isFadingOut?: boolean };
-  const [tasks, setTasks] = useState<Task[]>([
-    { id: '1', text: 'Finish homework', done: false, due: '2025-07-22' },
-  ]);
+  type Task = {
+    id: string;
+    text: string;
+    done: boolean;
+    due: string;
+    isFadingOut?: boolean;
+  };
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [newTask, setNewTask] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [error, setError] = useState('');
-  const nextIdRef = useRef(2);
-  const [addedTaskId, setAddedTaskId] = useState<string | null>(null);
+  const nextIdRef = useRef(1);
+  const [addedId, setAddedId] = useState<string | null>(null);
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('todoTasks');
+    if (saved) {
+      const parsed: Task[] = JSON.parse(saved);
+      setTasks(parsed);
+      // Set next id to avoid duplicates
+      const maxId = parsed.reduce((max, t) => Math.max(max, parseInt(t.id)), 0);
+      nextIdRef.current = maxId + 1;
+    } else {
+      // Default task on first load
+      setTasks([{ id: '0', text: 'Finish homework', done: false, due: '2025-07-22' }]);
+      nextIdRef.current = 1;
+    }
+  }, []);
+
+  // Save tasks to localStorage on change
+  useEffect(() => {
+    localStorage.setItem('todoTasks', JSON.stringify(tasks));
+  }, [tasks]);
 
   const addTask = () => {
     if (newTask.trim() === '') {
@@ -146,30 +143,29 @@ function ToDoList() {
       return;
     }
     const id = String(nextIdRef.current++);
-    const newTaskObj: Task = { id, text: newTask, done: false, due: dueDate };
-    setTasks((old) => [...old, newTaskObj]);
+    setTasks((old) => [...old, { id, text: newTask, done: false, due: dueDate }]);
     setNewTask('');
     setDueDate('');
     setError('');
-    setAddedTaskId(id);
+    setAddedId(id);
   };
 
   const toggleDone = (id: string) => {
     setTasks((old) =>
-      old.map((task) => (task.id === id ? { ...task, done: !task.done } : task))
+      old.map((t) => (t.id === id ? { ...t, done: !t.done } : t))
     );
   };
 
   const removeTask = (id: string) => {
     setTasks((old) =>
-      old.map((task) =>
-        task.id === id ? { ...task, isFadingOut: true } : task
+      old.map((t) =>
+        t.id === id ? { ...t, isFadingOut: true } : t
       )
     );
   };
 
   const handleAnimationEnd = (id: string) => {
-    setTasks((old) => old.filter((task) => task.id !== id));
+    setTasks((old) => old.filter((t) => t.id !== id));
   };
 
   return (
@@ -190,26 +186,26 @@ function ToDoList() {
           <li
             key={task.id}
             className={`task-item
-              ${addedTaskId === task.id ? 'fade-in' : ''}
+              ${addedId === task.id ? 'fade-in' : ''}
               ${task.isFadingOut ? 'fade-out' : ''}
             `}
             onAnimationEnd={() => {
               if (task.isFadingOut) handleAnimationEnd(task.id);
-              if (addedTaskId === task.id) setAddedTaskId(null);
+              if (addedId === task.id) setAddedId(null);
             }}
             style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'flex-start',
               marginBottom: '0.5rem',
+              opacity: task.isFadingOut ? 0 : 1,
+              transition: 'opacity 0.5s ease',
               padding: '0.5rem',
               borderRadius: '0.375rem',
               backgroundColor: '#f3f4f6',
-              opacity: task.isFadingOut ? 0 : 1,
-              transition: 'opacity 0.5s ease',
             }}
           >
-            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', flex: 1 }}>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <input
                   type="checkbox"
@@ -282,8 +278,8 @@ function ToDoList() {
       </div>
 
       <div style={{ marginTop: '2rem', textAlign: 'center' }}>
-        <RepoImage
-          src="/images/Todo.webp"
+        <img
+          src={withRepoPrefix('/images/Todo.webp')}
           alt="To Do List Illustration"
           style={{
             maxWidth: '300px',
@@ -301,61 +297,63 @@ function ToDoList() {
   );
 }
 
-// --- Reminders with fade-in/fade-out and notifications ---
+// --------- Reminders with persistence, fade, and notifications ---------
 function Reminders() {
-  type Reminder = { id: string; text: string; time: string; isFadingOut?: boolean };
-  const [reminders, setReminders] = useState<Reminder[]>([
-    { id: '1', text: 'Dentist appointment', time: '2025-07-21T10:00', isFadingOut: false },
-  ]);
+  type Reminder = {
+    id: string;
+    text: string;
+    time: string;
+    isFadingOut?: boolean;
+  };
+
+  const [reminders, setReminders] = useState<Reminder[]>([]);
   const [text, setText] = useState('');
   const [time, setTime] = useState('');
   const [error, setError] = useState('');
-  const nextIdRef = useRef(2);
+  const nextIdRef = useRef(1);
   const [addedId, setAddedId] = useState<string | null>(null);
-  const notificationTimers = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
-  // Request Notification permission on mount
+  // Load reminders from localStorage and schedule notifications
   useEffect(() => {
-    if ('Notification' in window) {
-      if (Notification.permission === 'default') {
-        Notification.requestPermission();
-      }
+    const saved = localStorage.getItem('reminders');
+    if (saved) {
+      const savedReminders: Reminder[] = JSON.parse(saved);
+      setReminders(savedReminders);
+      const maxId = savedReminders.reduce((max, r) => Math.max(max, parseInt(r.id)), 0);
+      nextIdRef.current = maxId + 1;
+    } else {
+      setReminders([{ id: '0', text: 'Dentist appointment', time: '2025-07-21T10:00' }]);
+      nextIdRef.current = 1;
     }
   }, []);
 
-  // Setup notification timers for reminders
+  // Save reminders and schedule notifications on change
   useEffect(() => {
-    // Clear old timers
-    notificationTimers.current.forEach((timer) => clearTimeout(timer));
-    notificationTimers.current.clear();
+    localStorage.setItem('reminders', JSON.stringify(reminders));
+    scheduleNotifications(reminders);
+  }, [reminders]);
 
+  // Schedule notifications function
+  function scheduleNotifications(reminders: Reminder[]) {
+    if (!('Notification' in window)) return;
     if (Notification.permission !== 'granted') return;
+
+    const now = Date.now();
 
     reminders.forEach((r) => {
       const reminderTime = new Date(r.time).getTime();
       const notifyTime = reminderTime - 60 * 60 * 1000; // 1 hour before
+      const delay = notifyTime - now;
 
-      const now = Date.now();
-      if (notifyTime > now) {
-        const timeoutDuration = notifyTime - now;
-        const timer = setTimeout(() => {
+      if (delay > 0) {
+        setTimeout(() => {
           new Notification('Reminder', {
             body: `${r.text} at ${new Date(r.time).toLocaleString()}`,
-            icon: '/favicon.ico',
           });
-          notificationTimers.current.delete(r.id);
-        }, timeoutDuration);
-
-        notificationTimers.current.set(r.id, timer);
+        }, delay);
       }
     });
-
-    // Cleanup timers on unmount or reminders change
-    return () => {
-      notificationTimers.current.forEach((timer) => clearTimeout(timer));
-      notificationTimers.current.clear();
-    };
-  }, [reminders]);
+  }
 
   const addReminder = () => {
     if (text.trim() === '' || !time) {
@@ -481,8 +479,8 @@ function Reminders() {
       </div>
 
       <div style={{ marginTop: '2rem', textAlign: 'center' }}>
-        <RepoImage
-          src="/images/Reminder.jpg"
+        <img
+          src={withRepoPrefix('/images/Reminder.jpg')}
           alt="Reminders Illustration"
           style={{
             maxWidth: '300px',
@@ -500,7 +498,7 @@ function Reminders() {
   );
 }
 
-// --- GoalTracker with fade-in/fade-out ---
+// --------- Goal Tracker with persistence and fade ---------
 function GoalTracker() {
   type Goal = {
     id: string;
@@ -509,14 +507,32 @@ function GoalTracker() {
     due: string;
     isFadingOut?: boolean;
   };
-  const [goals, setGoals] = useState<Goal[]>([
-    { id: '1', name: 'Learn React', progress: 40, due: '2025-08-01' },
-  ]);
+
+  const [goals, setGoals] = useState<Goal[]>([]);
   const [newGoal, setNewGoal] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [error, setError] = useState('');
-  const nextIdRef = useRef(2);
+  const nextIdRef = useRef(1);
   const [addedId, setAddedId] = useState<string | null>(null);
+
+  // Load goals from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('goals');
+    if (saved) {
+      const savedGoals: Goal[] = JSON.parse(saved);
+      setGoals(savedGoals);
+      const maxId = savedGoals.reduce((max, g) => Math.max(max, parseInt(g.id)), 0);
+      nextIdRef.current = maxId + 1;
+    } else {
+      setGoals([{ id: '0', name: 'Run 5km', progress: 60, due: '2025-08-01' }]);
+      nextIdRef.current = 1;
+    }
+  }, []);
+
+  // Save goals on change
+  useEffect(() => {
+    localStorage.setItem('goals', JSON.stringify(goals));
+  }, [goals]);
 
   const addGoal = () => {
     if (newGoal.trim() === '') {
@@ -575,49 +591,63 @@ function GoalTracker() {
               if (addedId === goal.id) setAddedId(null);
             }}
             style={{
-              marginBottom: '0.75rem',
+              marginBottom: '1.5rem',
               padding: '0.5rem',
               borderRadius: '0.375rem',
               backgroundColor: '#f3f4f6',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.25rem',
               opacity: goal.isFadingOut ? 0 : 1,
               transition: 'opacity 0.5s ease',
             }}
           >
-            <div style={{ fontWeight: 'bold' }}>{goal.name}</div>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '0.5rem',
+              }}
+            >
+              <span>{goal.name}</span>
+              <button
+                onClick={() => removeGoal(goal.id)}
+                style={{ color: '#dc2626', fontSize: '1.25rem', border: 'none', background: 'none', cursor: 'pointer' }}
+                aria-label={`Remove goal ${goal.name}`}
+              >
+                ✕
+              </button>
+            </div>
+            {goal.due && (
+              <p style={{ fontSize: '0.85rem', color: '#4b5563', marginBottom: '0.5rem' }}>
+                Due: {goal.due}
+              </p>
+            )}
+            <div
+              style={{
+                width: '100%',
+                backgroundColor: '#e5e7eb',
+                height: '0.75rem',
+                borderRadius: '9999px',
+                overflow: 'hidden',
+                marginBottom: '0.5rem',
+              }}
+            >
+              <div
+                style={{
+                  height: '100%',
+                  backgroundColor: '#22c55e',
+                  transition: 'width 0.3s ease',
+                  width: `${goal.progress}%`,
+                }}
+              />
+            </div>
             <input
               type="range"
-              min={0}
-              max={100}
+              min="0"
+              max="100"
               value={goal.progress}
-              onChange={(e) => updateProgress(goal.id, Number(e.target.value))}
+              onChange={(e) => updateProgress(goal.id, parseInt(e.target.value))}
               style={{ width: '100%' }}
             />
-            <div style={{ fontSize: '0.85rem', color: '#4b5563' }}>
-              Progress: {goal.progress}%
-            </div>
-            <div style={{ fontSize: '0.85rem', color: '#4b5563' }}>
-              Due: {goal.due}
-            </div>
-            <button
-              onClick={() => removeGoal(goal.id)}
-              style={{
-                alignSelf: 'flex-end',
-                backgroundColor: '#dc2626',
-                color: 'white',
-                border: 'none',
-                borderRadius: '0.375rem',
-                padding: '0.25rem 0.5rem',
-                cursor: 'pointer',
-                fontSize: '0.9rem',
-              }}
-              onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#b91c1c')}
-              onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#dc2626')}
-            >
-              Remove
-            </button>
           </li>
         ))}
       </ul>
@@ -667,9 +697,9 @@ function GoalTracker() {
       </div>
 
       <div style={{ marginTop: '2rem', textAlign: 'center' }}>
-        <RepoImage
-          src="/images/Goals.webp"
-          alt="Goal Tracker Illustration"
+        <img
+          src={withRepoPrefix('/images/Goals.webp')}
+          alt="Goals Illustration"
           style={{
             maxWidth: '300px',
             width: '80%',
@@ -686,42 +716,26 @@ function GoalTracker() {
   );
 }
 
-// --- Shared CSS Animations styles ---
+// Fade animations CSS as a React component
 function FadeStyles() {
   return (
-    <style>{`
-      @keyframes fade-in {
-        0% {
-          opacity: 0;
-          transform: translateY(20px);
+    <style>
+      {`
+        .fade-in {
+          animation: fadeIn 0.5s ease forwards;
         }
-        100% {
-          opacity: 1;
-          transform: translateY(0);
+        .fade-out {
+          animation: fadeOut 0.5s ease forwards;
         }
-      }
-      @keyframes fade-out {
-        0% {
-          opacity: 1;
-          transform: translateY(0);
-          height: auto;
-          margin-bottom: 0.5rem;
-          padding: 0.5rem;
+        @keyframes fadeIn {
+          from {opacity: 0; transform: translateY(10px);}
+          to {opacity: 1; transform: translateY(0);}
         }
-        100% {
-          opacity: 0;
-          transform: translateY(20px);
-          height: 0;
-          margin-bottom: 0;
-          padding: 0;
+        @keyframes fadeOut {
+          from {opacity: 1; transform: translateY(0);}
+          to {opacity: 0; transform: translateY(-10px);}
         }
-      }
-      .fade-in {
-        animation: fade-in 0.4s ease forwards;
-      }
-      .fade-out {
-        animation: fade-out 0.4s ease forwards;
-      }
-    `}</style>
+      `}
+    </style>
   );
 }
