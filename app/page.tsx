@@ -6,18 +6,10 @@ type Page = 'todo' | 'reminders' | 'goals';
 // Utility to prefix repo for images on GitHub Pages
 function withRepoPrefix(src: string): string {
   if (typeof window !== "undefined") {
-    const host = window.location.host;
-    const match = host.match(/^[^.]+\.github\.io\/([^/]+)/);
-    let repo = "";
-    if (match && match[1]) {
-      repo = match[1];
-    } else {
-      const pathMatch = window.location.pathname.match(/^\/([^/]+)\//);
-      if (pathMatch && pathMatch[1]) {
-        repo = pathMatch[1];
-      }
-    }
-    if (repo && !src.startsWith(`/${repo}`)) {
+    const path = window.location.pathname;
+    const repoMatch = path.match(/^\/([^/]+)\//);
+    const repo = repoMatch?.[1] || "";
+    if (repo && !src.startsWith(`/${repo}/`)) {
       return `/${repo}${src.startsWith("/") ? src : "/" + src}`;
     }
   }
