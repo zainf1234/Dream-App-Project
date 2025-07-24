@@ -108,6 +108,9 @@ function ToDoList() {
   const nextIdRef = useRef(1);
   const [addedId, setAddedId] = useState<string | null>(null);
 
+  // NEW: image src state for prefix fix
+  const [imgSrc, setImgSrc] = useState<string>('');
+
   // Load from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem('todoTasks');
@@ -122,6 +125,9 @@ function ToDoList() {
       setTasks([{ id: '0', text: 'Finish homework', done: false, due: '2025-07-22' }]);
       nextIdRef.current = 1;
     }
+
+    // Set the prefixed image src on mount
+    setImgSrc(withRepoPrefix('/images/Todo.webp'));
   }, []);
 
   // Save tasks to localStorage on change
@@ -270,18 +276,20 @@ function ToDoList() {
       </div>
 
       <div style={{ marginTop: '2rem', textAlign: 'center' }}>
-        <img
-          src={withRepoPrefix('/images/Todo.webp')}
-          alt="To Do List Illustration"
-          style={{
-            maxWidth: '300px',
-            width: '80%',
-            height: 'auto',
-            borderRadius: '0.75rem',
-            boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
-            margin: 'auto',
-          }}
-        />
+        {imgSrc && (
+          <img
+            src={imgSrc}
+            alt="To Do List Illustration"
+            style={{
+              maxWidth: '300px',
+              width: '80%',
+              height: 'auto',
+              borderRadius: '0.75rem',
+              boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
+              margin: 'auto',
+            }}
+          />
+        )}
       </div>
 
       <FadeStyles />
@@ -305,6 +313,9 @@ function Reminders() {
   const nextIdRef = useRef(1);
   const [addedId, setAddedId] = useState<string | null>(null);
 
+  // NEW: image src state for prefix fix
+  const [imgSrc, setImgSrc] = useState<string>('');
+
   // Load reminders from localStorage and schedule notifications
   useEffect(() => {
     const saved = localStorage.getItem('reminders');
@@ -317,6 +328,9 @@ function Reminders() {
       setReminders([{ id: '0', text: 'Dentist appointment', time: '2025-07-21T10:00' }]);
       nextIdRef.current = 1;
     }
+
+    // Set the prefixed image src on mount
+    setImgSrc(withRepoPrefix('/images/Reminder.jpg'));
   }, []);
 
   // Save reminders and schedule notifications on change
@@ -471,18 +485,20 @@ function Reminders() {
       </div>
 
       <div style={{ marginTop: '2rem', textAlign: 'center' }}>
-        <img
-          src={withRepoPrefix('/images/Reminder.jpg')}
-          alt="Reminders Illustration"
-          style={{
-            maxWidth: '300px',
-            width: '80%',
-            height: 'auto',
-            borderRadius: '0.75rem',
-            boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
-            margin: 'auto',
-          }}
-        />
+        {imgSrc && (
+          <img
+            src={imgSrc}
+            alt="Reminders Illustration"
+            style={{
+              maxWidth: '300px',
+              width: '80%',
+              height: 'auto',
+              borderRadius: '0.75rem',
+              boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
+              margin: 'auto',
+            }}
+          />
+        )}
       </div>
 
       <FadeStyles />
@@ -494,31 +510,36 @@ function Reminders() {
 function GoalTracker() {
   type Goal = {
     id: string;
-    name: string;
-    progress: number;
-    due: string;
+    text: string;
+    deadline: string;
+    completed: boolean;
     isFadingOut?: boolean;
   };
-
   const [goals, setGoals] = useState<Goal[]>([]);
-  const [newGoal, setNewGoal] = useState('');
-  const [dueDate, setDueDate] = useState('');
+  const [goalText, setGoalText] = useState('');
+  const [deadline, setDeadline] = useState('');
   const [error, setError] = useState('');
   const nextIdRef = useRef(1);
   const [addedId, setAddedId] = useState<string | null>(null);
 
-  // Load goals from localStorage
+  // NEW: image src state for prefix fix
+  const [imgSrc, setImgSrc] = useState<string>('');
+
+  // Load from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem('goals');
     if (saved) {
-      const savedGoals: Goal[] = JSON.parse(saved);
-      setGoals(savedGoals);
-      const maxId = savedGoals.reduce((max, g) => Math.max(max, parseInt(g.id)), 0);
+      const parsed: Goal[] = JSON.parse(saved);
+      setGoals(parsed);
+      const maxId = parsed.reduce((max, g) => Math.max(max, parseInt(g.id)), 0);
       nextIdRef.current = maxId + 1;
     } else {
-      setGoals([{ id: '0', name: 'Run 5km', progress: 60, due: '2025-08-01' }]);
+      setGoals([{ id: '0', text: 'Learn React', deadline: '2025-07-31', completed: false }]);
       nextIdRef.current = 1;
     }
+
+    // Set the prefixed image src on mount
+    setImgSrc(withRepoPrefix('/images/Goals.webp'));
   }, []);
 
   // Save goals on change
@@ -527,16 +548,22 @@ function GoalTracker() {
   }, [goals]);
 
   const addGoal = () => {
-    if (newGoal.trim() === '') {
-      setError('Goal name is required.');
+    if (goalText.trim() === '') {
+      setError('Goal description is required.');
       return;
     }
     const id = String(nextIdRef.current++);
-    setGoals((old) => [...old, { id, name: newGoal, progress: 0, due: dueDate }]);
-    setNewGoal('');
-    setDueDate('');
+    setGoals((old) => [...old, { id, text: goalText, deadline, completed: false }]);
+    setGoalText('');
+    setDeadline('');
     setError('');
     setAddedId(id);
+  };
+
+  const toggleComplete = (id: string) => {
+    setGoals((old) =>
+      old.map((g) => (g.id === id ? { ...g, completed: !g.completed } : g))
+    );
   };
 
   const removeGoal = (id: string) => {
@@ -544,12 +571,6 @@ function GoalTracker() {
       old.map((g) =>
         g.id === id ? { ...g, isFadingOut: true } : g
       )
-    );
-  };
-
-  const updateProgress = (id: string, newProgress: number) => {
-    setGoals((old) =>
-      old.map((g) => (g.id === id ? { ...g, progress: newProgress } : g))
     );
   };
 
@@ -571,75 +592,53 @@ function GoalTracker() {
         Goal Tracker
       </h2>
       <ul style={{ fontSize: 'clamp(0.9rem, 1vw, 1.1rem)', marginBottom: '1rem', listStyle: 'none', padding: 0 }}>
-        {goals.map((goal) => (
+        {goals.map((g) => (
           <li
-            key={goal.id}
+            key={g.id}
             className={`task-item
-              ${addedId === goal.id ? 'fade-in' : ''}
-              ${goal.isFadingOut ? 'fade-out' : ''}
+              ${addedId === g.id ? 'fade-in' : ''}
+              ${g.isFadingOut ? 'fade-out' : ''}
             `}
             onAnimationEnd={() => {
-              if (goal.isFadingOut) handleAnimationEnd(goal.id);
-              if (addedId === goal.id) setAddedId(null);
+              if (g.isFadingOut) handleAnimationEnd(g.id);
+              if (addedId === g.id) setAddedId(null);
             }}
             style={{
-              marginBottom: '1.5rem',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              marginBottom: '0.5rem',
+              opacity: g.isFadingOut ? 0 : 1,
+              transition: 'opacity 0.5s ease',
               padding: '0.5rem',
               borderRadius: '0.375rem',
               backgroundColor: '#f3f4f6',
-              opacity: goal.isFadingOut ? 0 : 1,
-              transition: 'opacity 0.5s ease',
             }}
           >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '0.5rem',
-              }}
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <input
+                  type="checkbox"
+                  checked={g.completed}
+                  onChange={() => toggleComplete(g.id)}
+                />
+                <span style={{ textDecoration: g.completed ? 'line-through' : 'none' }}>
+                  {g.text}
+                </span>
+              </div>
+              {g.deadline && (
+                <span style={{ fontSize: '0.85rem', color: '#4b5563' }}>
+                  Deadline: {g.deadline}
+                </span>
+              )}
+            </label>
+            <button
+              onClick={() => removeGoal(g.id)}
+              style={{ color: '#dc2626', fontSize: '1.25rem', border: 'none', background: 'none', cursor: 'pointer' }}
+              aria-label={`Remove goal ${g.text}`}
             >
-              <span>{goal.name}</span>
-              <button
-                onClick={() => removeGoal(goal.id)}
-                style={{ color: '#dc2626', fontSize: '1.25rem', border: 'none', background: 'none', cursor: 'pointer' }}
-                aria-label={`Remove goal ${goal.name}`}
-              >
-                ✕
-              </button>
-            </div>
-            {goal.due && (
-              <p style={{ fontSize: '0.85rem', color: '#4b5563', marginBottom: '0.5rem' }}>
-                Due: {goal.due}
-              </p>
-            )}
-            <div
-              style={{
-                width: '100%',
-                backgroundColor: '#e5e7eb',
-                height: '0.75rem',
-                borderRadius: '9999px',
-                overflow: 'hidden',
-                marginBottom: '0.5rem',
-              }}
-            >
-              <div
-                style={{
-                  height: '100%',
-                  backgroundColor: '#22c55e',
-                  transition: 'width 0.3s ease',
-                  width: `${goal.progress}%`,
-                }}
-              />
-            </div>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={goal.progress}
-              onChange={(e) => updateProgress(goal.id, parseInt(e.target.value))}
-              style={{ width: '100%' }}
-            />
+              ✕
+            </button>
           </li>
         ))}
       </ul>
@@ -649,8 +648,8 @@ function GoalTracker() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         <input
           type="text"
-          value={newGoal}
-          onChange={(e) => setNewGoal(e.target.value)}
+          value={goalText}
+          onChange={(e) => setGoalText(e.target.value)}
           placeholder="New goal"
           style={{
             padding: 'clamp(0.5rem, 1vw, 0.75rem)',
@@ -661,8 +660,8 @@ function GoalTracker() {
         />
         <input
           type="date"
-          value={dueDate}
-          onChange={(e) => setDueDate(e.target.value)}
+          value={deadline}
+          onChange={(e) => setDeadline(e.target.value)}
           style={{
             padding: 'clamp(0.5rem, 1vw, 0.75rem)',
             fontSize: 'clamp(1rem, 1vw, 1.2rem)',
@@ -689,18 +688,20 @@ function GoalTracker() {
       </div>
 
       <div style={{ marginTop: '2rem', textAlign: 'center' }}>
-        <img
-          src={withRepoPrefix('/images/Goals.webp')}
-          alt="Goals Illustration"
-          style={{
-            maxWidth: '300px',
-            width: '80%',
-            height: 'auto',
-            borderRadius: '0.75rem',
-            boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
-            margin: 'auto',
-          }}
-        />
+        {imgSrc && (
+          <img
+            src={imgSrc}
+            alt="Goal Tracker Illustration"
+            style={{
+              maxWidth: '300px',
+              width: '80%',
+              height: 'auto',
+              borderRadius: '0.75rem',
+              boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
+              margin: 'auto',
+            }}
+          />
+        )}
       </div>
 
       <FadeStyles />
@@ -708,7 +709,7 @@ function GoalTracker() {
   );
 }
 
-// Fade animations CSS as a React component
+// --------- CSS for fade animations ---------
 function FadeStyles() {
   return (
     <style>
@@ -720,12 +721,12 @@ function FadeStyles() {
           animation: fadeOut 0.5s ease forwards;
         }
         @keyframes fadeIn {
-          from {opacity: 0; transform: translateY(10px);}
-          to {opacity: 1; transform: translateY(0);}
+          from {opacity: 0;}
+          to {opacity: 1;}
         }
         @keyframes fadeOut {
-          from {opacity: 1; transform: translateY(0);}
-          to {opacity: 0; transform: translateY(-10px);}
+          from {opacity: 1;}
+          to {opacity: 0;}
         }
       `}
     </style>
