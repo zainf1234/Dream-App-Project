@@ -515,7 +515,6 @@ function GoalTracker() {
     completed: boolean;
     isFadingOut?: boolean;
   };
-
   const [goals, setGoals] = useState<Goal[]>([]);
   const [goalText, setGoalText] = useState('');
   const [deadline, setDeadline] = useState('');
@@ -523,15 +522,16 @@ function GoalTracker() {
   const nextIdRef = useRef(1);
   const [addedId, setAddedId] = useState<string | null>(null);
 
-  // Quote state (removed loadingQuote as unused)
-  const [quotesList, setQuotesList] = useState<{ text: string; author: string | null }[]>([]);
-  const [quote, setQuote] = useState<string | null>(null);
-  const [quoteAuthor, setQuoteAuthor] = useState<string | null>(null);
-  const [quoteError, setQuoteError] = useState<string | null>(null);
-
   // NEW: image src state for prefix fix
   const [imgSrc, setImgSrc] = useState<string>('');
 
+  // Quote states
+  const [quote, setQuote] = useState<string | null>(null);
+  const [quoteAuthor, setQuoteAuthor] = useState<string | null>(null);
+  const [quoteError, setQuoteError] = useState<string | null>(null);
+  const [loadingQuote, setLoadingQuote] = useState(false);
+
+  // Load from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem('goals');
     if (saved) {
@@ -544,22 +544,11 @@ function GoalTracker() {
       nextIdRef.current = 1;
     }
 
+    // Set the prefixed image src on mount
     setImgSrc(withRepoPrefix('/images/Goals.webp'));
-
-    const fetchQuotes = async () => {
-      try {
-        const res = await fetch('https://type.fit/api/quotes');
-        if (!res.ok) throw new Error('Failed to fetch quotes');
-        const data = await res.json();
-        setQuotesList(data);
-      } catch {
-        setQuoteError('Failed to load quotes.');
-      }
-    };
-
-    fetchQuotes();
   }, []);
 
+  // Save goals on change
   useEffect(() => {
     localStorage.setItem('goals', JSON.stringify(goals));
   }, [goals]);
@@ -595,15 +584,29 @@ function GoalTracker() {
     setGoals((old) => old.filter((g) => g.id !== id));
   };
 
-  const generateQuote = () => {
-    if (quotesList.length === 0) {
-      setQuoteError('No quotes available.');
-      return;
-    }
-    const random = quotesList[Math.floor(Math.random() * quotesList.length)];
-    setQuote(random.text);
-    setQuoteAuthor(random.author || 'Unknown');
+  // Fetch a random quote on demand
+  const generateQuote = async () => {
     setQuoteError(null);
+    setLoadingQuote(true);
+    try {
+      const res = await fetch('https://type.fit/api/quotes');
+      if (!res.ok) throw new Error('Failed to fetch quotes');
+      const data: { text: string; author: string | null }[] = await res.json();
+      if (data.length === 0) {
+        setQuoteError('No quotes available.');
+        setQuote(null);
+        setQuoteAuthor(null);
+      } else {
+        const random = data[Math.floor(Math.random() * data.length)];
+        setQuote(random.text);
+        setQuoteAuthor(random.author || 'Unknown');
+      }
+    } catch {
+      setQuoteError('Failed to load quotes.');
+      setQuote(null);
+      setQuoteAuthor(null);
+    }
+    setLoadingQuote(false);
   };
 
   return (
@@ -673,7 +676,7 @@ function GoalTracker() {
 
       {error && <p style={{ color: '#dc2626', marginBottom: '1rem' }}>{error}</p>}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '2rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem' }}>
         <input
           type="text"
           value={goalText}
@@ -715,46 +718,60 @@ function GoalTracker() {
         </button>
       </div>
 
-      {/* Quote Generator Section */}
+      {/* Quote generator section */}
       <div
         style={{
-          padding: '1rem',
-          border: '1px solid #d1d5db',
+          backgroundColor: '#e0e7ff',
           borderRadius: '0.75rem',
-          backgroundColor: '#f9fafb',
+          padding: '1rem',
           textAlign: 'center',
           maxWidth: '600px',
           margin: 'auto',
+          boxShadow: '0 2px 8px rgba(37, 99, 235, 0.3)',
         }}
       >
-        <h3 style={{ marginBottom: '1rem' }}>Motivational Quote</h3>
-        {quoteError ? (
-          <p style={{ color: '#dc2626' }}>{quoteError}</p>
-        ) : quote ? (
-          <>
-            <p style={{ fontStyle: 'italic', fontSize: '1.1rem' }}>&quot;{quote}&quot;</p>
-            <p style={{ marginTop: '0.5rem', fontWeight: 'bold' }}>— {quoteAuthor}</p>
-          </>
-        ) : (
-          <p>Click the button below to get a motivational quote.</p>
-        )}
         <button
           onClick={generateQuote}
+          disabled={loadingQuote}
           style={{
-            marginTop: '1rem',
             backgroundColor: '#2563eb',
             color: 'white',
             padding: '0.5rem 1rem',
             borderRadius: '0.5rem',
+            fontSize: 'clamp(1rem, 1vw, 1.25rem)',
             border: 'none',
-            cursor: 'pointer',
-            fontSize: '1rem',
+            cursor: loadingQuote ? 'wait' : 'pointer',
+            marginBottom: '1rem',
           }}
-          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1e40af')}
-          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
+          onMouseOver={(e) => {
+            if (!loadingQuote) e.currentTarget.style.backgroundColor = '#1e40af';
+          }}
+          onMouseOut={(e) => {
+            if (!loadingQuote) e.currentTarget.style.backgroundColor = '#2563eb';
+          }}
+          aria-busy={loadingQuote}
+          aria-label="Generate a random inspirational quote"
         >
-          Generate Quote
+          {loadingQuote ? 'Loading...' : 'Generate Inspirational Quote'}
         </button>
+
+        {quoteError && <p style={{ color: '#dc2626' }}>{quoteError}</p>}
+
+        {quote && (
+          <blockquote
+            style={{
+              fontStyle: 'italic',
+              fontSize: 'clamp(1rem, 1.1vw, 1.25rem)',
+              color: '#1e3a8a',
+              marginTop: '1rem',
+            }}
+          >
+            “{quote}”<br />
+            <cite style={{ fontWeight: 'bold', color: '#2563eb' }}>
+              — {quoteAuthor}
+            </cite>
+          </blockquote>
+        )}
       </div>
 
       <div style={{ marginTop: '2rem', textAlign: 'center' }}>
@@ -778,6 +795,7 @@ function GoalTracker() {
     </div>
   );
 }
+
 
 
 
