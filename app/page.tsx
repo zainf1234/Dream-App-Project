@@ -516,18 +516,25 @@ function GoalTracker() {
     completed: boolean;
     isFadingOut?: boolean;
   };
+
   const [goals, setGoals] = useState<Goal[]>([]);
   const [goalText, setGoalText] = useState('');
   const [deadline, setDeadline] = useState('');
   const [error, setError] = useState('');
+
+  const [quote, setQuote] = useState<string | null>(null);
+  const [quoteAuthor, setQuoteAuthor] = useState<string | null>(null);
+  const [loadingQuote, setLoadingQuote] = useState(false);
+  const [quoteError, setQuoteError] = useState<string | null>(null);
+
   const nextIdRef = useRef(1);
   const [addedId, setAddedId] = useState<string | null>(null);
 
-  // NEW: image src state for prefix fix
+  // Image src prefix fix (your repo image path)
   const [imgSrc, setImgSrc] = useState<string>('');
 
-  // Load from localStorage on mount
   useEffect(() => {
+    // Load goals from localStorage
     const saved = localStorage.getItem('goals');
     if (saved) {
       const parsed: Goal[] = JSON.parse(saved);
@@ -539,11 +546,9 @@ function GoalTracker() {
       nextIdRef.current = 1;
     }
 
-    // Set the prefixed image src on mount
     setImgSrc(withRepoPrefix('/images/Goals.webp'));
   }, []);
 
-  // Save goals on change
   useEffect(() => {
     localStorage.setItem('goals', JSON.stringify(goals));
   }, [goals]);
@@ -579,6 +584,25 @@ function GoalTracker() {
     setGoals((old) => old.filter((g) => g.id !== id));
   };
 
+  // Fetch random quote from Quotable API
+  const fetchQuote = async () => {
+    setLoadingQuote(true);
+    setQuoteError(null);
+    try {
+      const res = await fetch('https://api.quotable.io/random');
+      if (!res.ok) throw new Error('Failed to fetch quote');
+      const data = await res.json();
+      setQuote(data.content);
+      setQuoteAuthor(data.author);
+    } catch (err) {
+      setQuoteError('Could not fetch quote. Please try again.');
+      setQuote(null);
+      setQuoteAuthor(null);
+    } finally {
+      setLoadingQuote(false);
+    }
+  };
+
   return (
     <div
       style={{
@@ -592,6 +616,7 @@ function GoalTracker() {
       <h2 style={{ fontSize: 'clamp(1.25rem, 2vw, 1.75rem)', marginBottom: '1rem' }}>
         Goal Tracker
       </h2>
+
       <ul style={{ fontSize: 'clamp(0.9rem, 1vw, 1.1rem)', marginBottom: '1rem', listStyle: 'none', padding: 0 }}>
         {goals.map((g) => (
           <li
@@ -646,7 +671,7 @@ function GoalTracker() {
 
       {error && <p style={{ color: '#dc2626', marginBottom: '1rem' }}>{error}</p>}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '2rem' }}>
         <input
           type="text"
           value={goalText}
@@ -688,6 +713,51 @@ function GoalTracker() {
         </button>
       </div>
 
+      <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+        <button
+          onClick={fetchQuote}
+          disabled={loadingQuote}
+          style={{
+            backgroundColor: loadingQuote ? '#9ca3af' : '#10b981', // gray if loading else green
+            color: 'white',
+            padding: '0.5rem 1rem',
+            borderRadius: '0.375rem',
+            fontSize: 'clamp(1rem, 1vw, 1.2rem)',
+            border: 'none',
+            cursor: loadingQuote ? 'not-allowed' : 'pointer',
+          }}
+          onMouseOver={(e) => {
+            if (!loadingQuote) e.currentTarget.style.backgroundColor = '#059669';
+          }}
+          onMouseOut={(e) => {
+            if (!loadingQuote) e.currentTarget.style.backgroundColor = '#10b981';
+          }}
+          aria-label="Generate random quote"
+        >
+          {loadingQuote ? 'Loading...' : 'Generate Quote'}
+        </button>
+
+        {quoteError && (
+          <p style={{ color: '#dc2626', marginTop: '0.5rem' }}>{quoteError}</p>
+        )}
+
+        {quote && (
+          <blockquote
+            style={{
+              marginTop: '1rem',
+              fontStyle: 'italic',
+              fontSize: 'clamp(1rem, 1.2vw, 1.25rem)',
+              color: '#374151',
+              borderLeft: '4px solid #10b981',
+              paddingLeft: '1rem',
+            }}
+          >
+            “{quote}”
+            {quoteAuthor && <footer style={{ marginTop: '0.5rem', fontWeight: 'bold' }}>— {quoteAuthor}</footer>}
+          </blockquote>
+        )}
+      </div>
+
       <div style={{ marginTop: '2rem', textAlign: 'center' }}>
         {imgSrc && (
           <img
@@ -709,6 +779,7 @@ function GoalTracker() {
     </div>
   );
 }
+
 
 // --------- CSS for fade animations ---------
 function FadeStyles() {
