@@ -585,20 +585,25 @@ function GoalTracker() {
   };
 
   // New: fetch activity from BoredAPI
-  const fetchActivity = async () => {
-    setLoadingActivity(true);
-    setActivityError(null);
-    try {
-      const res = await fetch('https://www.boredapi.com/api/activity');
-      if (!res.ok) throw new Error('Failed to fetch activity');
-      const data = await res.json();
-      setActivity(data.activity);
-    } catch (e: any) {
-      setActivityError(e.message || 'Unknown error');
-    } finally {
-      setLoadingActivity(false);
+const fetchActivity = async () => {
+  setLoadingActivity(true);
+  setActivityError(null);
+  try {
+    const res = await fetch('https://www.boredapi.com/api/activity');
+    if (!res.ok) throw new Error('Failed to fetch activity');
+    const data = await res.json() as { activity: string };
+    setActivity(data.activity);
+  } catch (e: unknown) {
+    if (e instanceof Error) {
+      setActivityError(e.message);
+    } else {
+      setActivityError('Unknown error');
     }
-  };
+  } finally {
+    setLoadingActivity(false);
+  }
+};
+
 
   return (
     <div
