@@ -507,7 +507,7 @@ function Reminders() {
   );
 }
 
-// --------- GoalTracker with persistence, fade, and BoredAPI ---------
+// --------- Goal Tracker with persistence and fade ---------
 function GoalTracker() {
   type Goal = {
     id: string;
@@ -525,11 +525,6 @@ function GoalTracker() {
 
   // NEW: image src state for prefix fix
   const [imgSrc, setImgSrc] = useState<string>('');
-
-  // NEW: BoredAPI activity state
-  const [activity, setActivity] = useState<string | null>(null);
-  const [loadingActivity, setLoadingActivity] = useState(false);
-  const [activityError, setActivityError] = useState<string | null>(null);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -583,27 +578,6 @@ function GoalTracker() {
   const handleAnimationEnd = (id: string) => {
     setGoals((old) => old.filter((g) => g.id !== id));
   };
-
-  // New: fetch activity from BoredAPI
-const fetchActivity = async () => {
-  setLoadingActivity(true);
-  setActivityError(null);
-  try {
-    const res = await fetch('https://www.boredapi.com/api/activity');
-    if (!res.ok) throw new Error('Failed to fetch activity');
-    const data = await res.json() as { activity: string };
-    setActivity(data.activity);
-  } catch (e: unknown) {
-    if (e instanceof Error) {
-      setActivityError(e.message);
-    } else {
-      setActivityError('Unknown error');
-    }
-  } finally {
-    setLoadingActivity(false);
-  }
-};
-
 
   return (
     <div
@@ -712,45 +686,6 @@ const fetchActivity = async () => {
         >
           Add Goal
         </button>
-
-        {/* BoredAPI suggest activity button */}
-        <button
-          onClick={fetchActivity}
-          disabled={loadingActivity}
-          style={{
-            marginTop: '1rem',
-            backgroundColor: '#10b981',
-            color: 'white',
-            padding: '0.5rem',
-            borderRadius: '0.375rem',
-            fontSize: 'clamp(1rem, 1vw, 1.2rem)',
-            border: 'none',
-            cursor: loadingActivity ? 'wait' : 'pointer',
-          }}
-          onMouseOver={(e) => !loadingActivity && (e.currentTarget.style.backgroundColor = '#059669')}
-          onMouseOut={(e) => !loadingActivity && (e.currentTarget.style.backgroundColor = '#10b981')}
-        >
-          {loadingActivity ? 'Loading...' : 'Suggest Activity'}
-        </button>
-
-        {/* Show fetched activity */}
-        {activity && (
-          <p
-            style={{
-              marginTop: '0.75rem',
-              fontStyle: 'italic',
-              color: '#065f46',
-              fontSize: 'clamp(0.9rem, 1vw, 1.1rem)',
-            }}
-          >
-            🎯 {activity}
-          </p>
-        )}
-
-        {/* Show fetch error */}
-        {activityError && (
-          <p style={{ color: '#dc2626', marginTop: '0.75rem' }}>{activityError}</p>
-        )}
       </div>
 
       <div style={{ marginTop: '2rem', textAlign: 'center' }}>
@@ -775,24 +710,26 @@ const fetchActivity = async () => {
   );
 }
 
-// --------- CSS Animations ---------
+// --------- CSS for fade animations ---------
 function FadeStyles() {
   return (
-    <style>{`
-      .fade-in {
-        animation: fadeIn 0.4s ease forwards;
-      }
-      .fade-out {
-        animation: fadeOut 0.5s ease forwards;
-      }
-      @keyframes fadeIn {
-        from {opacity: 0; transform: translateY(10px);}
-        to {opacity: 1; transform: translateY(0);}
-      }
-      @keyframes fadeOut {
-        from {opacity: 1; transform: translateY(0);}
-        to {opacity: 0; transform: translateY(-10px);}
-      }
-    `}</style>
+    <style>
+      {`
+        .fade-in {
+          animation: fadeIn 0.5s ease forwards;
+        }
+        .fade-out {
+          animation: fadeOut 0.5s ease forwards;
+        }
+        @keyframes fadeIn {
+          from {opacity: 0;}
+          to {opacity: 1;}
+        }
+        @keyframes fadeOut {
+          from {opacity: 1;}
+          to {opacity: 0;}
+        }
+      `}
+    </style>
   );
 }
