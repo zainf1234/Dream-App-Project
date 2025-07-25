@@ -594,7 +594,7 @@ function GoalTracker() {
       const data = await res.json();
       setQuote(data.content);
       setQuoteAuthor(data.author);
-    } catch (err) {
+    } catch {
       setQuoteError('Could not fetch quote. Please try again.');
       setQuote(null);
       setQuoteAuthor(null);
