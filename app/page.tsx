@@ -507,7 +507,6 @@ function Reminders() {
   );
 }
 
-// --------- Goal Tracker with quotes fetching ---------
 function GoalTracker() {
   type Goal = {
     id: string;
@@ -524,17 +523,15 @@ function GoalTracker() {
   const nextIdRef = useRef(1);
   const [addedId, setAddedId] = useState<string | null>(null);
 
-  // Quote state
+  // Quote state (removed loadingQuote as unused)
   const [quotesList, setQuotesList] = useState<{ text: string; author: string | null }[]>([]);
   const [quote, setQuote] = useState<string | null>(null);
   const [quoteAuthor, setQuoteAuthor] = useState<string | null>(null);
-  const [loadingQuote, setLoadingQuote] = useState(false);
   const [quoteError, setQuoteError] = useState<string | null>(null);
 
   // NEW: image src state for prefix fix
   const [imgSrc, setImgSrc] = useState<string>('');
 
-  // Load goals and quotes on mount
   useEffect(() => {
     const saved = localStorage.getItem('goals');
     if (saved) {
@@ -547,10 +544,8 @@ function GoalTracker() {
       nextIdRef.current = 1;
     }
 
-    // Set the prefixed image src on mount
     setImgSrc(withRepoPrefix('/images/Goals.webp'));
 
-    // Fetch all quotes once
     const fetchQuotes = async () => {
       try {
         const res = await fetch('https://type.fit/api/quotes');
@@ -565,7 +560,6 @@ function GoalTracker() {
     fetchQuotes();
   }, []);
 
-  // Save goals on change
   useEffect(() => {
     localStorage.setItem('goals', JSON.stringify(goals));
   }, [goals]);
@@ -601,7 +595,6 @@ function GoalTracker() {
     setGoals((old) => old.filter((g) => g.id !== id));
   };
 
-  // Pick a random quote from the loaded list
   const generateQuote = () => {
     if (quotesList.length === 0) {
       setQuoteError('No quotes available.');
@@ -735,13 +728,11 @@ function GoalTracker() {
         }}
       >
         <h3 style={{ marginBottom: '1rem' }}>Motivational Quote</h3>
-        {loadingQuote ? (
-          <p>Loading quote...</p>
-        ) : quoteError ? (
+        {quoteError ? (
           <p style={{ color: '#dc2626' }}>{quoteError}</p>
         ) : quote ? (
           <>
-            <p style={{ fontStyle: 'italic', fontSize: '1.1rem' }}>"{quote}"</p>
+            <p style={{ fontStyle: 'italic', fontSize: '1.1rem' }}>&quot;{quote}&quot;</p>
             <p style={{ marginTop: '0.5rem', fontWeight: 'bold' }}>— {quoteAuthor}</p>
           </>
         ) : (
@@ -787,6 +778,7 @@ function GoalTracker() {
     </div>
   );
 }
+
 
 
 
