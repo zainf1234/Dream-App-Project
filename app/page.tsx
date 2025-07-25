@@ -507,6 +507,7 @@ function Reminders() {
   );
 }
 
+// --------- Goal Tracker with persistence and fade ---------
 function GoalTracker() {
   type Goal = {
     id: string;
@@ -515,20 +516,17 @@ function GoalTracker() {
     completed: boolean;
     isFadingOut?: boolean;
   };
-
   const [goals, setGoals] = useState<Goal[]>([]);
   const [goalText, setGoalText] = useState('');
   const [deadline, setDeadline] = useState('');
+  const [error, setError] = useState('');
+  const nextIdRef = useRef(1);
   const [addedId, setAddedId] = useState<string | null>(null);
 
-  // Quote related states
-  const [quote, setQuote] = useState('');
-  const [loadingQuote, setLoadingQuote] = useState(false);
-  const [quoteError, setQuoteError] = useState('');
-
-  const nextIdRef = useRef(1);
+  // NEW: image src state for prefix fix
   const [imgSrc, setImgSrc] = useState<string>('');
 
+  // Load from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem('goals');
     if (saved) {
@@ -540,23 +538,26 @@ function GoalTracker() {
       setGoals([{ id: '0', text: 'Learn React', deadline: '2025-07-31', completed: false }]);
       nextIdRef.current = 1;
     }
+
+    // Set the prefixed image src on mount
     setImgSrc(withRepoPrefix('/images/Goals.webp'));
   }, []);
 
+  // Save goals on change
   useEffect(() => {
     localStorage.setItem('goals', JSON.stringify(goals));
   }, [goals]);
 
   const addGoal = () => {
     if (goalText.trim() === '') {
-      setQuoteError('Goal description is required.');
+      setError('Goal description is required.');
       return;
     }
     const id = String(nextIdRef.current++);
     setGoals((old) => [...old, { id, text: goalText, deadline, completed: false }]);
     setGoalText('');
     setDeadline('');
-    setQuoteError('');
+    setError('');
     setAddedId(id);
   };
 
@@ -568,29 +569,15 @@ function GoalTracker() {
 
   const removeGoal = (id: string) => {
     setGoals((old) =>
-      old.map((g) => (g.id === id ? { ...g, isFadingOut: true } : g))
+      old.map((g) =>
+        g.id === id ? { ...g, isFadingOut: true } : g
+      )
     );
   };
 
   const handleAnimationEnd = (id: string) => {
     setGoals((old) => old.filter((g) => g.id !== id));
   };
-
-  async function fetchQuote() {
-    setLoadingQuote(true);
-    setQuoteError('');
-    try {
-      const res = await fetch('https://api.quotable.io/random');
-      if (!res.ok) throw new Error('Failed to fetch quote');
-      const data = await res.json();
-      setQuote(`"${data.content}" — ${data.author}`);
-    } catch {
-      setQuoteError('Could not fetch quote. Please try again.');
-      setQuote('');
-    } finally {
-      setLoadingQuote(false);
-    }
-  }
 
   return (
     <div
@@ -605,21 +592,14 @@ function GoalTracker() {
       <h2 style={{ fontSize: 'clamp(1.25rem, 2vw, 1.75rem)', marginBottom: '1rem' }}>
         Goal Tracker
       </h2>
-
-      <ul
-        style={{
-          fontSize: 'clamp(0.9rem, 1vw, 1.1rem)',
-          marginBottom: '1rem',
-          listStyle: 'none',
-          padding: 0,
-        }}
-      >
+      <ul style={{ fontSize: 'clamp(0.9rem, 1vw, 1.1rem)', marginBottom: '1rem', listStyle: 'none', padding: 0 }}>
         {goals.map((g) => (
           <li
             key={g.id}
-            className={`task-item ${addedId === g.id ? 'fade-in' : ''} ${
-              g.isFadingOut ? 'fade-out' : ''
-            }`}
+            className={`task-item
+              ${addedId === g.id ? 'fade-in' : ''}
+              ${g.isFadingOut ? 'fade-out' : ''}
+            `}
             onAnimationEnd={() => {
               if (g.isFadingOut) handleAnimationEnd(g.id);
               if (addedId === g.id) setAddedId(null);
@@ -655,13 +635,7 @@ function GoalTracker() {
             </label>
             <button
               onClick={() => removeGoal(g.id)}
-              style={{
-                color: '#dc2626',
-                fontSize: '1.25rem',
-                border: 'none',
-                background: 'none',
-                cursor: 'pointer',
-              }}
+              style={{ color: '#dc2626', fontSize: '1.25rem', border: 'none', background: 'none', cursor: 'pointer' }}
               aria-label={`Remove goal ${g.text}`}
             >
               ✕
@@ -670,11 +644,9 @@ function GoalTracker() {
         ))}
       </ul>
 
-      {quoteError && (
-        <p style={{ color: '#dc2626', marginBottom: '1rem' }}>{quoteError}</p>
-      )}
+      {error && <p style={{ color: '#dc2626', marginBottom: '1rem' }}>{error}</p>}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         <input
           type="text"
           value={goalText}
@@ -716,39 +688,6 @@ function GoalTracker() {
         </button>
       </div>
 
-      <div style={{ marginBottom: '1rem' }}>
-        <button
-          onClick={fetchQuote}
-          disabled={loadingQuote}
-          style={{
-            backgroundColor: loadingQuote ? '#94a3b8' : '#10b981',
-            color: 'white',
-            padding: '0.5rem 1rem',
-            borderRadius: '0.375rem',
-            fontSize: 'clamp(1rem, 1vw, 1.2rem)',
-            border: 'none',
-            cursor: loadingQuote ? 'not-allowed' : 'pointer',
-          }}
-        >
-          {loadingQuote ? 'Loading...' : 'Get Motivational Quote'}
-        </button>
-      </div>
-
-      {quote && (
-        <blockquote
-          style={{
-            fontStyle: 'italic',
-            color: '#065f46',
-            borderLeft: '4px solid #10b981',
-            paddingLeft: '1rem',
-            maxWidth: '600px',
-            margin: 'auto',
-          }}
-        >
-          {quote}
-        </blockquote>
-      )}
-
       <div style={{ marginTop: '2rem', textAlign: 'center' }}>
         {imgSrc && (
           <img
@@ -770,9 +709,6 @@ function GoalTracker() {
     </div>
   );
 }
-
-
-
 
 // --------- CSS for fade animations ---------
 function FadeStyles() {
