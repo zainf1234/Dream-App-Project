@@ -590,7 +590,7 @@ function GoalTracker() {
     setLoadingQuote(true);
     setQuoteError(null);
     try {
-      const res = await fetch('https://api.quotable.io/random');
+      const res = await fetch('https://cors-anywhere.herokuapp.com/https://api.quotable.io/random');
       if (!res.ok) throw new Error('Failed to fetch quote');
       const data = await res.json() as { content: string; author: string };
       setQuote(data.content);
