@@ -507,6 +507,7 @@ function Reminders() {
   );
 }
 
+// --------- GoalTracker with persistence, fade, and BoredAPI ---------
 function GoalTracker() {
   type Goal = {
     id: string;
@@ -769,27 +770,24 @@ function GoalTracker() {
   );
 }
 
-
-// --------- CSS for fade animations ---------
+// --------- CSS Animations ---------
 function FadeStyles() {
   return (
-    <style>
-      {`
-        .fade-in {
-          animation: fadeIn 0.5s ease forwards;
-        }
-        .fade-out {
-          animation: fadeOut 0.5s ease forwards;
-        }
-        @keyframes fadeIn {
-          from {opacity: 0;}
-          to {opacity: 1;}
-        }
-        @keyframes fadeOut {
-          from {opacity: 1;}
-          to {opacity: 0;}
-        }
-      `}
-    </style>
+    <style>{`
+      .fade-in {
+        animation: fadeIn 0.4s ease forwards;
+      }
+      .fade-out {
+        animation: fadeOut 0.5s ease forwards;
+      }
+      @keyframes fadeIn {
+        from {opacity: 0; transform: translateY(10px);}
+        to {opacity: 1; transform: translateY(0);}
+      }
+      @keyframes fadeOut {
+        from {opacity: 1; transform: translateY(0);}
+        to {opacity: 0; transform: translateY(-10px);}
+      }
+    `}</style>
   );
 }
